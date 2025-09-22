@@ -5,36 +5,53 @@ import type { ReactNode } from 'react';
 type Props = {
   nav: ReactNode;
   children: ReactNode;
-  /** whether the sidebar is visible */
+  /** whether the sidebar is visible (desktop only) */
   open: boolean;
 };
 
 export default function DashboardShell({ nav, children, open }: Props) {
+  // izmantojam CSS mainīgo, lai gludi animētu platumu uz ≥md
+  const sbWidth = open ? '220px' : '0px';
+
   return (
     <div
-      className="grid min-h-[70vh]"
-      // Smoothly animate the sidebar width
-      style={{ gridTemplateColumns: open ? '220px 1fr' : '0 1fr', transition: 'grid-template-columns .2s ease' }}
+      className="min-h-[70vh] md:grid"
+      style={{
+        // tikai vizuālais: uz mobilā nav grid, tāpēc šis neko neietekmē
+        gridTemplateColumns: `var(--sbw, 0px) 1fr`,
+        // gludā animācija desktopam
+        transition: 'grid-template-columns .2s ease',
+        // iestādam mainīgo, ko izmantojam md režīmā
+        // (varam mainīt dinamiski bez klasēm)
+        ['--sbw' as any]: sbWidth,
+      }}
     >
-      {/* Sidebar column */}
+      {/* Sidebar kolonna — pilnībā paslēpta uz mobilā */}
       <aside
-        aria-hidden={!open}
+        role="complementary"
         aria-label="App menu"
-        // Important: no horizontal overflow, keep vertical scroll
+        aria-hidden={!open}
+        tabIndex={open ? 0 : -1}
         className={[
-          'box-border border-r border-neutral-200 bg-white',
-          open ? 'px-4 py-4 opacity-100 pointer-events-auto' : 'p-0 opacity-0 pointer-events-none',
+          // mobilajā neeksistē kolonna
+          'hidden md:block',
+          // tikai desktopā rādām robežu un fonu
+          'md:box-border md:border-r md:border-neutral-200 md:bg-white',
+          // kad atvērts, iekšējais paddings; kad ciet – bez padding un bez klikšķiem
+          open
+            ? 'md:px-4 md:py-4 md:opacity-100 md:pointer-events-auto'
+            : 'md:p-0 md:opacity-0 md:pointer-events-none',
+          // ritjoslas uz vertikāli, lai garie saraksti nerauj layoutu
           'overflow-x-hidden overflow-y-auto',
+          // gluda opacity/padding animācija
           'transition-[opacity,padding] duration-200 ease-linear',
         ].join(' ')}
-        // When closed, keep it out of tab order
-        tabIndex={open ? 0 : -1}
       >
         {nav}
       </aside>
 
-      {/* Main content */}
-      <section className="relative p-6">
+      {/* Saturs */}
+      <section className="relative p-4 md:p-6 min-w-0">
         {children}
       </section>
     </div>
