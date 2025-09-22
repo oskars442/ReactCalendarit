@@ -1,0 +1,439 @@
+{
+  "landing": {
+    "nav": {
+      "features": "Iespējas",
+      "how": "Kā tas strādā",
+      "pricing": "Cenas",
+      "login": "Pieteikties",
+      "getStarted": "Sākt lietot",
+      "workout": "Treniņš"
+    },
+    "hero": {
+      "eyebrow": "Viss vienā – dzīves centrs",
+      "h1": "Organizē savu dienu vienā vietā",
+      "sub": "Plāno uzdevumus, seko finansēm, uzturi kalendāru un pārbaudi laiku — viss skaisti apvienots.",
+      "primaryCta": "Sākt bez maksas",
+      "secondaryCta": "Skatīt demo",
+      "noCard": "Nav vajadzīga maksājumu karte."
+    },
+    "stats": {
+      "rating": "Vidējais vērtējums",
+      "users": "Lietotāji",
+      "uptime": "Pieejamība"
+    },
+    "features": {
+      "title": "Viss, kas vajadzīgs, lai būtu lietas kursā",
+      "sub": "Viegls, ātrs un patīkams.",
+      "cards": {
+        "calendar": { "title": "Kalendārs", "desc": "Vienkāršs mēneša un nedēļas skats ar ātro pievienošanu." },
+        "tasks": { "title": "Uzdevumi", "desc": "Krāsu saraksti un atgādinājumi." },
+        "finance": { "title": "Finanses", "desc": "Ienākumu un izdevumu uzskaite ar grafikiem." },
+        "weather": { "title": "Laikapstākļi", "desc": "24 stundu un 7 dienu prognoze jūsu pilsētai." }
+      }
+    },
+    "how": {
+      "title": "Trīs vienkārši soļi",
+      "steps": {
+        "1": { "t": "Izveido kontu", "d": "Reģistrējies pāris sekundēs un iestati vēlmes." },
+        "2": { "t": "Pievieno saturu", "d": "Uzdevumi, notikumi, izdevumi — viss vienā laika joslā." },
+        "3": { "t": "Esi lietas kursā", "d": "Pārskatāmi paneļi un gudri atgādinājumi." }
+      }
+    },
+    "social": {
+      "title": "Ko saka lietotāji",
+      "items": [
+        { "q": "Beidzot man uzdevumi un finanses ir vienuviet." },
+        { "q": "Ļoti ātrs, un laikapstākļu karte patiešām noder." },
+        { "q": "Lieliski darbojas mobilajā — lietoju katru dienu." }
+      ]
+    },
+    "cta": {
+      "title": "Gatavs sakārtot dienu?",
+      "sub": "Pievienojies tūkstošiem cilvēku, kas vada savu dienu ar CalendarIt.",
+      "primary": "Izveidot bezmaksas kontu",
+      "secondary": "Skatīt cenas"
+    },
+    "footer": { "privacy": "Privātums", "terms": "Noteikumi" }
+  },
+
+  "publicNav": {
+    "home": "Sākums",
+    "about": "Par mums",
+    "suggestions": "Ieteikumi",
+    "pricing": "Cenas"
+  },
+
+  "nav": {
+    "overview": "Pārskats",
+    "calendar": "Kalendārs",
+    "todo": "Uzdevumi",
+    "groceries": "Iepirkumi",
+    "workDiary": "Darba dienasgrāmata",
+    "weather": "Laikapstākļi",
+    "stats": "Statistika",
+    "workout": "Treniņi"
+  },
+
+  "auth": {
+    "login": "Pieteikties",
+    "register": "Reģistrēties",
+    "logout": "Izrakstīties"
+  },
+
+  "common": {
+    "language": "Valoda",
+    "loading": "Ielādē…",
+    "updated": "Atjaunots"
+  },
+
+  "footer": {
+    "learnMore": "Uzzināt vairāk",
+    "contact": { "title": "Kontakti" },
+    "nav": {
+      "title": "Navigācija",
+      "home": "Sākums",
+      "about": "Par mums",
+      "terms": "Lietošanas noteikumi",
+      "privacy": "Privātuma politika"
+    },
+    "follow": { "title": "Seko mums", "comingSoon": "Drīzumā:" },
+    "rights": "Visas tiesības aizsargātas."
+  },
+
+  "overview": {
+    "title": "Pārskats",
+    "todayEvents": "Šodienas notikumi",
+    "noEventsToday": "Nav atrastu notikumu.",
+    "weekAhead": "Šo nedēļ",
+    "monthAnniversaries": "Šo mēnes",
+    "quote": "Dienas citāts",
+    "nameDay": "Vārda dienas Latvijā",
+    "weatherMini": "Laikapstākļi",
+    "chooseCity": "Izvēlies pilsētu",
+    "openWeather": "Rādīt laikapstākļus",
+    "sunrise": "Saullēkts",
+    "sunset": "Saulriets",
+    "wind": "Vējš",
+    "humidity": "Mitrums",
+    "dataBy": "Dati no",
+    "openMeteo": "Open-Meteo"
+  },
+
+  "weather": {
+    "title": "Laikapstākļi Latvijā",
+    "subtitle": "Precīza prognoze visām Latvijas pilsētām",
+    "searchPlaceholder": "Meklēt pilsētu Latvijā…",
+    "quick": {
+      "riga": "Rīga",
+      "liepaja": "Liepāja",
+      "ventspils": "Ventspils",
+      "jelgava": "Jelgava",
+      "jurmala": "Jūrmala"
+    },
+    "units": { "c": "°C", "f": "°F", "group": "Temperatūras vienības" },
+    "aria": {
+      "celsius": "Celsija grādi",
+      "fahrenheit": "Fārenheita grādi",
+      "sunPos": "Saules novietojums",
+      "moonPos": "Mēness novietojums"
+    },
+    "today": "Šodien",
+    "tomorrow": "Rīt",
+    "hourlyTitle": "24 stundu prognoze",
+    "dailyTitle": "7 dienu prognoze",
+    "feelsLike": "Jūtas kā {temp}",
+    "wind": "Vējš",
+    "humidity": "Mitrums",
+    "uvIndex": "UV indekss",
+    "pressure": "Spiediens",
+    "visibility": "Redzamība",
+    "clouds": "Mākoņainība",
+    "sunrise": "Saullēkts",
+    "sunset": "Saulriets",
+    "dayLength": "Dienas garums",
+    "feelsLikeLabel": "Jūtas kā",
+    "gusts": "Brāzmas",
+    "uvLow": "Zems",
+    "uvModerate": "Vidējs",
+    "uvHigh": "Augsts",
+    "uvVeryHigh": "Ļoti augsts",
+    "uvExtreme": "Ekstrēms",
+    "noHourly": "Nav pieejama stundas prognoze",
+    "now": "Tagad",
+    "tomorrowAt": "Rīt {time}",
+    "scrollHint": "← Ritiniet, lai redzētu vairāk →",
+    "noDaily": "Nav pieejama dienu prognoze",
+    "minmaxNote": "Dienas maksimālā un minimālā temperatūra",
+    "unknownPlace": "Nezināma vieta",
+    "searchAria": "Meklēt pilsētu",
+    "noResults": "Pilsēta nav atrasta",
+    "countryLV": "Latvija",
+    "yourLocationSuffix": "(jūsu atrašanās vieta)",
+    "yourLocation": "Jūsu atrašanās vieta",
+    "dataBy": "Dati no",
+    "codes": {
+      "0":  { "text": "Skaidrs", "icon": "☀️", "group": "clear" },
+      "1":  { "text": "Pārsvarā skaidrs", "icon": "🌤️", "group": "clear" },
+      "2":  { "text": "Daļēji mākoņains", "icon": "⛅", "group": "cloudy" },
+      "3":  { "text": "Mākoņains", "icon": "☁️", "group": "overcast" },
+      "45": { "text": "Migla", "icon": "🌫️", "group": "fog" },
+      "48": { "text": "Sarmota migla", "icon": "🌫️", "group": "fog" },
+      "51": { "text": "Neliels smidzinājums", "icon": "🌦️", "group": "drizzle" },
+      "53": { "text": "Mērens smidzinājums", "icon": "🌦️", "group": "drizzle" },
+      "55": { "text": "Spēcīgs smidzinājums", "icon": "🌧️", "group": "drizzle" },
+      "56": { "text": "Neliels sasalstošs smidzinājums", "icon": "🌨️", "group": "drizzle" },
+      "57": { "text": "Spēcīgs sasalstošs smidzinājums", "icon": "🌨️", "group": "drizzle" },
+      "61": { "text": "Neliels lietus", "icon": "🌦️", "group": "rain" },
+      "63": { "text": "Mērens lietus", "icon": "🌧️", "group": "rain" },
+      "65": { "text": "Spēcīgs lietus", "icon": "🌧️", "group": "rain" },
+      "66": { "text": "Neliels sasalstošs lietus", "icon": "🌨️", "group": "rain" },
+      "67": { "text": "Spēcīgs sasalstošs lietus", "icon": "🌨️", "group": "rain" },
+      "71": { "text": "Neliels sniegs", "icon": "🌨️", "group": "snow" },
+      "73": { "text": "Mērens sniegs", "icon": "❄️", "group": "snow" },
+      "75": { "text": "Spēcīgs sniegs", "icon": "❄️", "group": "snow" },
+      "77": { "text": "Sniega graudi", "icon": "🌨️", "group": "snow" },
+      "80": { "text": "Nelielas lietusgāzes", "icon": "🌦️", "group": "rain" },
+      "81": { "text": "Mērenas lietusgāzes", "icon": "🌧️", "group": "rain" },
+      "82": { "text": "Spēcīgas lietusgāzes", "icon": "⛈️", "group": "rain" },
+      "85": { "text": "Nelielas sniega brāzmas", "icon": "🌨️", "group": "snow" },
+      "86": { "text": "Spēcīgas sniega brāzmas", "icon": "❄️", "group": "snow" },
+      "95": { "text": "Pērkona negaiss", "icon": "⛈️", "group": "thunderstorm" },
+      "96": { "text": "Negaiss ar nelielu krusu", "icon": "⛈️", "group": "thunderstorm" },
+      "99": { "text": "Negaiss ar spēcīgu krusu", "icon": "⛈️", "group": "thunderstorm" }
+    }
+  },
+
+  "groceries": {
+    "loading": "Iepirkumu saraksts ielādējas…",
+    "title": "Iepirkumi",
+    "subtitle": "Pievieno produktus savam iepirkumu sarakstam",
+    "placeholder": "Pievieno produktu…",
+    "addBtn": "Pievienot",
+    "empty": {
+      "title": "Tavs iepirkumu saraksts ir tukšs",
+      "subtitle": "Pievieno dažus produktus, lai sāktu!"
+    },
+    "stats": {
+      "total": "Kopā",
+      "completed": "Pabeigts"
+    },
+    "clearCompleted": "Notīrīt pabeigtos",
+    "deleteAria": "Dzēst produktu"
+  },
+
+  "diary": {
+     "labels": {
+    "saved": "Saglabātās etiķetes"
+  },
+        "day": "Diena",
+    "week": "Nedēļa",
+    "title": "Darba dienasgrāmata",
+    "close": "Aizvērt",
+    "cancel": "Atcelt",
+    "save": "Saglabāt",
+    "loading": "Ieraksti tiek ielādēti…",
+    "actions": { "new": "+ Jauns", "edit": "Rediģēt", "delete": "Dzēst", "cancel": "Atcelt", "save": "Saglabāt" },
+    "fields": {
+      "title": "Nosaukums",
+      "type": "Tips",
+      "customLabel": "Pielāgota birka",
+      "customPlaceholder": "piem., Zobārsts, Filmēšana, Treniņš",
+      "color": "Krāsa",
+      "start": "Sākums",
+      "end": "Beigas",
+      "location": "Vieta",
+      "notes": "Piezīmes"
+    },
+    "types": {
+      "task": "Uzdevums",
+      "job": "Darbs",
+      "meeting": "Tikšanās",
+      "other": "Cits",
+      "otherMore": "Cits…"
+    },
+    "modal": { "new": "Jauns ieraksts", "edit": "Rediģēt ierakstu" },
+    "confirmDelete": "Dzēst šo ierakstu?",
+    "errors": {
+      "endBeforeStart": "Beigu laiks nevar būt pirms sākuma.",
+      "load": "Neizdevās ielādēt: {msg}",
+      "save": "Neizdevās saglabāt: {msg}",
+      "delete": "Neizdevās dzēst: {msg}"
+    },
+    "aria": { "close": "Aizvērt", "pickDate": "Izvēlēties datumu" }
+  },
+
+  "todo": {
+    "title": "Uzdevumi",
+    "subtitle": "Ātrs, minimālistisks, tastatūrai draudzīgs uzdevumu pārvaldnieks.",
+    "progress": "{done}/{total} izpildīti",
+    "addTask": {
+      "label": "Pievienot uzdevumu",
+      "placeholder": "Raksti un spied Enter…",
+      "tip": "Padoms: **Shift+Enter**, lai vispirms pievienotu piezīmes.",
+      "button": "Pievienot",
+      "buttonAria": "Pievienot uzdevumu"
+    },
+    "priority": {
+      "label": "Prioritāte",
+      "low": "Zema",
+      "med": "Vidēja",
+      "high": "Augsta"
+    },
+    "due": {
+      "label": "Termiņš",
+      "badge": "Termiņš {date}"
+    },
+    "notes": {
+      "label": "Piezīmes",
+      "placeholder": "Neobligāti… (Shift+Enter, lai pievienotu)"
+    },
+    "filters": {
+      "all": "Visi",
+      "today": "Šodien",
+      "upcoming": "Drīzumā",
+      "done": "Pabeigti"
+    },
+    "showCompleted": "Rādīt pabeigtos",
+    "search": { "placeholder": "Meklēt… (/)" },
+    "clearDone": { "button": "Notīrīt pabeigtos", "title": "Noņemt visus pabeigtos uzdevumus" },
+    "actions": { "edit": "Rediģēt", "delete": "Dzēst" },
+    "empty": "Nav atbilstošu uzdevumu. Pamēģini mainīt filtrus.",
+    "shortcuts": {
+      "title": "Saīsnes",
+      "focusAdd": "fokuss uz pievienošanu",
+      "search": "meklēt",
+      "toggleCompleted": "pārslēgt pabeigto rādīšanu",
+      "addTask": "pievienot uzdevumu",
+      "addFromNotes": "pievienot no piezīmēm"
+    },
+    "aria": { "toggleComplete": "Atzīmēt kā pabeigtu" },
+    "editModal": {
+      "title": "Rediģēt uzdevumu",
+      "close": "Aizvērt",
+      "fields": { "title": "Nosaukums", "notes": "Piezīmes", "priority": "Prioritāte" },
+      "cancel": "Atcelt",
+      "save": "Saglabāt"
+    }
+  },
+
+  "register": {
+    "title": "Izveido kontu",
+    "subtitle": "Ievadi savus datus un sāc lietot CalendarIt.",
+    "backToHome": "Atpakaļ uz sākumu",
+    "firstName": "Vārds",
+    "lastName": "Uzvārds",
+    "email": "E-pasts",
+    "password": "Parole",
+    "passwordHint": "Min. 8 rakstzīmes",
+    "show": "Rādīt",
+    "hide": "Slēpt",
+    "gender": "Dzimums",
+    "genders": {
+      "female": "Sieviete",
+      "male": "Vīrietis",
+      "other": "Cits",
+      "na": "Nevēlos norādīt"
+    },
+    "birthdate": "Dzimšanas datums",
+    "country": "Valsts",
+    "select": "Izvēlies…",
+    "agreeLine": "Es piekrītu <terms>Noteikumiem</terms> un <privacy>Privātuma politikai</privacy>.",
+    "creating": "Konta izveide…",
+    "signup": "Reģistrēties",
+    "haveAccount": "Jau ir konts?",
+    "signin": "Pieteikties",
+    "benefits": {
+      "0": "Uzdevumi, finanses un kalendārs vienuviet",
+      "1": "Laikapstākļi un ieskati skaisti integrēti",
+      "2": "Sāc bez maksas — nav vajadzīga karte"
+    },
+    "errors": {
+      "firstName": "Vārds ir obligāts.",
+      "lastName": "Uzvārds ir obligāts.",
+      "email": "Ievadi derīgu e-pastu.",
+      "password": "Parolei jābūt vismaz 8 rakstzīmēm.",
+      "gender": "Lūdzu, izvēlies dzimumu.",
+      "birthdateRequired": "Dzimšanas datums ir obligāts.",
+      "birthdateYoung": "Tev jābūt vismaz 13 gadus vecam.",
+      "country": "Lūdzu, izvēlies valsti.",
+      "agree": "Jāpiekrīt Noteikumiem un Privātumam.",
+      "failed": "Reģistrācija neizdevās. Mēģini vēlreiz."
+    },
+    "countries": {
+      "Latvia": "Latvija",
+      "Lithuania": "Lietuva",
+      "Estonia": "Igaunija",
+      "Poland": "Polija",
+      "Germany": "Vācija",
+      "Finland": "Somija",
+      "Sweden": "Zviedrija",
+      "Norway": "Norvēģija",
+      "Denmark": "Dānija",
+      "United Kingdom": "Apvienotā Karaliste",
+      "Ireland": "Īrija",
+      "Netherlands": "Nīderlande",
+      "Belgium": "Beļģija",
+      "France": "Francija",
+      "Spain": "Spānija",
+      "Italy": "Itālija",
+      "Portugal": "Portugāle",
+      "Czech Republic": "Čehija",
+      "Slovakia": "Slovākija",
+      "Hungary": "Ungārija",
+      "Romania": "Rumānija",
+      "Bulgaria": "Bulgārija",
+      "Greece": "Grieķija",
+      "United States": "Amerikas Savienotās Valstis",
+      "Canada": "Kanāda"
+    }
+  },
+
+  "login": {
+    "backHome": "Atpakaļ uz sākumu",
+    "welcomeTitle": "Priecājamies redzēt",
+    "welcomeSub": "Piesakies, lai piekļūtu kalendāram, uzdevumiem un ieskatiem.",
+    "title": "Pieteikties",
+    "subtitle": "Laipni lūgts atpakaļ! Lūdzu, ievadi savus datus.",
+    "email": "E-pasts",
+    "password": "Parole",
+    "show": "Rādīt",
+    "hide": "Slēpt",
+    "remember": "Atcerēties mani",
+    "forgot": "Aizmirsi paroli?",
+    "signIn": "Pieteikties",
+    "signing": "Pierakstās…",
+    "noAccount": "Vēl nav konta?",
+    "createOne": "Izveidot",
+    "invalid": "Nederīgs e-pasts vai parole."
+  },
+
+  "day": {
+    "dialogSubtitleLite": "Izvēlies krāsu, pievieno ātrās lietas un saglabā.",
+    "close": "Aizvērt",
+    "saveDayLog": "Saglabāt dienas ierakstu",
+    "validationError": "Lūdzu, izlabo iezīmētos laukus.",
+    "saveError": "Neizdevās saglabāt. Mēģini vēlreiz.",
+    "recurringError": "Neizdevās saglabāt periodisku notikumu.",
+    "dayColor": "Dienas krāsa",
+    "custom": "Pielāgota",
+    "clear": "Notīrīt",
+    "groceries": "Iepirkumi",
+    "todo": "Uzdevumi",
+    "workDiary": "Darba dienasgrāmata",
+    "productPlaceholder": "Pievieno produktu…",
+    "todoPlaceholder": "Raksti un spied Enter…",
+    "add": "Pievienot",
+    "low": "Zema",
+    "med": "Vidēja",
+    "high": "Augsta",
+    "new": "Jauns",
+    "yearlyEvents": "Ikgadējie notikumi",
+    "eventPlaceholder": "Notikuma nosaukums…",
+    "save": "Saglabāt",
+    "saveYearly": "Saglabāt ikgadēju notikumu",
+    "toastWorkSaved": "Darba ieraksts saglabāts",
+    "toastGroceriesOk": "Pievienots Iepirkumiem",
+    "toastTodosOk": "Pievienots Uzdevumiem",
+    "toastGenericErr": "Neizdevās saglabāt"
+  }
+}

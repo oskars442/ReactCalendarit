@@ -1,0 +1,8 @@
+packages:
+  - "**"
+
+# Allow these deps to run their postinstall/build scripts in CI
+allowedBuiltDependencies:
+  - "@prisma/client"
+  - "@prisma/engines"
+  - prisma

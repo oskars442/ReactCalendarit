@@ -1,0 +1,37 @@
+/* NO @tailwind here; Tailwind stays in globals.css */
+
+.weather-scope {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  overflow-x: hidden;
+}
+
+/* Gradients */
+.weather-scope.bg-clear,         .weather-scope .bg-clear         { background: linear-gradient(135deg,#667eea 0%,#764ba2 100%); min-height: 100vh; }
+.weather-scope.bg-cloudy,        .weather-scope .bg-cloudy        { background: linear-gradient(135deg,#bdc3c7 0%,#2c3e50 100%);  min-height: 100vh; }
+.weather-scope.bg-rainy,         .weather-scope .bg-rainy         { background: linear-gradient(135deg,#4b6cb7 0%,#182848 100%);  min-height: 100vh; }
+.weather-scope.bg-snowy,         .weather-scope .bg-snowy         { background: linear-gradient(135deg,#e6ddd4 0%,#d5d4d0 100%);  min-height: 100vh; }
+.weather-scope.bg-stormy,        .weather-scope .bg-stormy        { background: linear-gradient(135deg,#2c3e50 0%,#34495e 100%);  min-height: 100vh; }
+.weather-scope.bg-night,         .weather-scope .bg-night         { background: linear-gradient(135deg,#0c0c0c 0%,#1a1a2e 50%,#16213e 100%); min-height: 100vh; }
+.weather-scope.bg-sunny,         .weather-scope .bg-sunny         { background: linear-gradient(135deg,#f093fb 0%,#f5576c 100%);  min-height: 100vh; }
+.weather-scope.bg-partly-cloudy, .weather-scope .bg-partly-cloudy { background: linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);  min-height: 100vh; }
+.weather-scope.bg-overcast,      .weather-scope .bg-overcast      { background: linear-gradient(135deg,#606c88 0%,#3f4c6b 100%);  min-height: 100vh; }
+.weather-scope.bg-fog,           .weather-scope .bg-fog           { background: linear-gradient(135deg,#d3cce3 0%,#e9e4f0 100%);  min-height: 100vh; }
+.weather-scope.bg-drizzle,       .weather-scope .bg-drizzle       { background: linear-gradient(135deg,#89f7fe 0%,#66a6ff 100%);  min-height: 100vh; }
+
+/* Fallback */
+.weather-scope.bg-default, .weather-scope .bg-default,
+.weather-scope.min-h-screen, .weather-scope .min-h-screen { background: linear-gradient(135deg,#667eea 0%,#764ba2 100%); min-height: 100vh; }
+
+/* Glass */
+.weather-scope .glass-card { background: rgba(255,255,255,0.1); backdrop-filter: blur(20px); border:1px solid rgba(255,255,255,0.2); border-radius:20px; box-shadow:0 8px 32px rgba(31,38,135,0.37); }
+.weather-scope .glass-button { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border:1px solid rgba(255,255,255,0.3); border-radius:12px; transition: all .3s ease; cursor:pointer; }
+.weather-scope .glass-button:hover { background: rgba(255,255,255,0.25); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+
+/* Search input */
+.weather-scope .search-input { background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border:1px solid rgba(255,255,255,0.3); border-radius:15px; color:white; }
+.weather-scope .search-input::placeholder { color: rgba(255,255,255,0.7); }
+.weather-scope .search-input:focus { outline:none; border-color: rgba(255,255,255,0.5); box-shadow: 0 0 20px rgba(255,255,255,0.2); }
+
+/* Text shadow utility */
+.weather-scope .text-shadow { text-shadow: 0 2px 4px rgba(0,0,0,0.5); }

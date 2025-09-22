@@ -1,0 +1,439 @@
+{
+  "landing": {
+    "nav": {
+      "features": "Features",
+      "how": "How it works",
+      "pricing": "Pricing",
+      "login": "Log in",
+      "getStarted": "Get started",
+      "workout": "Workout"
+    },
+    "hero": {
+      "eyebrow": "All-in-one life hub",
+      "h1": "Organize your day in one place",
+      "sub": "Plan tasks, track money, keep a calendar, and check the weather — beautifully integrated.",
+      "primaryCta": "Start free",
+      "secondaryCta": "See demo",
+      "noCard": "No credit card needed."
+    },
+    "stats": {
+      "rating": "Average rating",
+      "users": "Users",
+      "uptime": "Uptime"
+    },
+    "features": {
+      "title": "Everything you need to stay on top",
+      "sub": "Lightweight, fast and delightful.",
+      "cards": {
+        "calendar": { "title": "Calendar", "desc": "Simple month & week views with quick add." },
+        "tasks": { "title": "Tasks", "desc": "Color-coded lists and reminders." },
+        "finance": { "title": "Finance", "desc": "Income & expense tracking with charts." },
+        "weather": { "title": "Weather", "desc": "24-hour and 7-day forecasts for your city." }
+      }
+    },
+    "how": {
+      "title": "Three simple steps",
+      "steps": {
+        "1": { "t": "Create an account", "d": "Sign up in seconds and set your preferences." },
+        "2": { "t": "Add your stuff", "d": "Tasks, events, expenses — all in one timeline." },
+        "3": { "t": "Stay in control", "d": "Clean dashboards and smart reminders." }
+      }
+    },
+    "social": {
+      "title": "What users say",
+      "items": [
+        { "q": "I finally have my tasks and money in one place." },
+        { "q": "Super fast and the weather card is actually useful." },
+        { "q": "Looks great on mobile — I use it every day." }
+      ]
+    },
+    "cta": {
+      "title": "Ready to get organized?",
+      "sub": "Join thousands of people who run their day with CalendarIt.",
+      "primary": "Create free account",
+      "secondary": "See pricing"
+    },
+    "footer": { "privacy": "Privacy", "terms": "Terms" }
+  },
+
+  "publicNav": {
+    "home": "Home",
+    "about": "About",
+    "suggestions": "Suggestions",
+    "pricing": "Pricing"
+  },
+
+  "nav": {
+    "overview": "Overview",
+    "calendar": "Calendar",
+    "todo": "To-Do",
+    "groceries": "Groceries",
+    "workDiary": "Work Diary",
+    "weather": "Weather",
+    "stats": "Statistics",
+    "workout": "Workout"
+  },
+
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "logout": "Sign out"
+  },
+
+  "common": {
+    "language": "Language",
+    "loading": "Loading...",
+    "updated": "Updated"
+  },
+
+  "footer": {
+    "learnMore": "Learn more",
+    "contact": { "title": "Contacts" },
+    "nav": {
+      "title": "Navigation",
+      "home": "Home",
+      "about": "About",
+      "terms": "Terms & Conditions",
+      "privacy": "Privacy Policy"
+    },
+    "follow": { "title": "Follow us", "comingSoon": "Coming soon:" },
+    "rights": "All rights reserved."
+  },
+
+  "overview": {
+    "title": "Overview",
+    "todayEvents": "Today’s Events",
+    "noEventsToday": "No events found.",
+    "weekAhead": "This Week",
+    "monthAnniversaries": "This month’s",
+    "quote": "Quote of the Day",
+    "nameDay": "Name Day",
+    "weatherMini": "Weather",
+    "chooseCity": "Choose city",
+    "openWeather": "Show weather",
+    "sunrise": "Sunrise",
+    "sunset": "Sunset",
+    "wind": "Wind",
+    "humidity": "Humidity",
+    "dataBy": "Data by",
+    "openMeteo": "Open-Meteo"
+  },
+
+  "weather": {
+    "title": "Latvia Weather",
+    "subtitle": "Accurate forecast for all Latvian cities",
+    "searchPlaceholder": "Search a city in Latvia...",
+    "quick": {
+      "riga": "Riga",
+      "liepaja": "Liepāja",
+      "ventspils": "Ventspils",
+      "jelgava": "Jelgava",
+      "jurmala": "Jūrmala"
+    },
+    "units": { "c": "°C", "f": "°F", "group": "Temperature units" },
+    "aria": {
+      "celsius": "Celsius degrees",
+      "fahrenheit": "Fahrenheit degrees",
+      "sunPos": "Sun position",
+      "moonPos": "Moon position"
+    },
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "hourlyTitle": "24-hour forecast",
+    "dailyTitle": "7-day forecast",
+    "feelsLike": "Feels like {temp}",
+    "wind": "Wind",
+    "humidity": "Humidity",
+    "uvIndex": "UV index",
+    "pressure": "Pressure",
+    "visibility": "Visibility",
+    "clouds": "Clouds",
+    "sunrise": "Sunrise",
+    "sunset": "Sunset",
+    "dayLength": "Day length",
+    "feelsLikeLabel": "Feels like",
+    "gusts": "Gusts",
+    "uvLow": "Low",
+    "uvModerate": "Moderate",
+    "uvHigh": "High",
+    "uvVeryHigh": "Very high",
+    "uvExtreme": "Extreme",
+    "noHourly": "No hourly forecast available",
+    "now": "Now",
+    "tomorrowAt": "Tomorrow {time}",
+    "scrollHint": "← Scroll to see more →",
+    "noDaily": "No daily forecast available",
+    "minmaxNote": "Daily maximum and minimum temperature",
+    "unknownPlace": "Unknown place",
+    "searchAria": "Search city",
+    "noResults": "City not found",
+    "countryLV": "Latvia",
+    "yourLocationSuffix": "(your location)",
+    "yourLocation": "Your location",
+    "dataBy": "Data by",
+    "codes": {
+      "0": { "text": "Clear", "icon": "☀️", "group": "clear" },
+      "1": { "text": "Mostly clear", "icon": "🌤️", "group": "clear" },
+      "2": { "text": "Partly cloudy", "icon": "⛅", "group": "cloudy" },
+      "3": { "text": "Overcast", "icon": "☁️", "group": "overcast" },
+      "45": { "text": "Fog", "icon": "🌫️", "group": "fog" },
+      "48": { "text": "Depositing rime fog", "icon": "🌫️", "group": "fog" },
+      "51": { "text": "Light drizzle", "icon": "🌦️", "group": "drizzle" },
+      "53": { "text": "Moderate drizzle", "icon": "🌦️", "group": "drizzle" },
+      "55": { "text": "Dense drizzle", "icon": "🌧️", "group": "drizzle" },
+      "56": { "text": "Light freezing drizzle", "icon": "🌨️", "group": "drizzle" },
+      "57": { "text": "Heavy freezing drizzle", "icon": "🌨️", "group": "drizzle" },
+      "61": { "text": "Slight rain", "icon": "🌦️", "group": "rain" },
+      "63": { "text": "Moderate rain", "icon": "🌧️", "group": "rain" },
+      "65": { "text": "Heavy rain", "icon": "🌧️", "group": "rain" },
+      "66": { "text": "Light freezing rain", "icon": "🌨️", "group": "rain" },
+      "67": { "text": "Heavy freezing rain", "icon": "🌨️", "group": "rain" },
+      "71": { "text": "Slight snow", "icon": "🌨️", "group": "snow" },
+      "73": { "text": "Moderate snow", "icon": "❄️", "group": "snow" },
+      "75": { "text": "Heavy snow", "icon": "❄️", "group": "snow" },
+      "77": { "text": "Snow grains", "icon": "🌨️", "group": "snow" },
+      "80": { "text": "Slight rain showers", "icon": "🌦️", "group": "rain" },
+      "81": { "text": "Moderate rain showers", "icon": "🌧️", "group": "rain" },
+      "82": { "text": "Violent rain showers", "icon": "⛈️", "group": "rain" },
+      "85": { "text": "Slight snow showers", "icon": "🌨️", "group": "snow" },
+      "86": { "text": "Heavy snow showers", "icon": "❄️", "group": "snow" },
+      "95": { "text": "Thunderstorm", "icon": "⛈️", "group": "thunderstorm" },
+      "96": { "text": "Thunderstorm with slight hail", "icon": "⛈️", "group": "thunderstorm" },
+      "99": { "text": "Thunderstorm with heavy hail", "icon": "⛈️", "group": "thunderstorm" }
+    }
+  },
+
+  "groceries": {
+    "loading": "Loading groceries…",
+    "title": "Groceries",
+    "subtitle": "Add products to your shopping list",
+    "placeholder": "Add a product…",
+    "addBtn": "Add",
+    "empty": {
+      "title": "Your shopping list is empty",
+      "subtitle": "Add some products to get started!"
+    },
+    "stats": {
+      "total": "Total",
+      "completed": "Completed"
+    },
+    "clearCompleted": "Clear completed",
+    "deleteAria": "Delete product"
+  },
+
+  "diary": {
+     "labels": {
+    "saved": "Saved labels"
+  },
+    "day": "Day",
+    "week": "Week",
+  "title": "Work Diary",
+  "close": "Close",
+  "cancel": "Cancel",
+  "save": "Save",
+  "loading": "Loading entries…",
+  "actions": { "new": "+ New", "edit": "Edit", "delete": "Delete", "cancel": "Cancel", "save": "Save" },
+    "fields": {
+      "title": "Title",
+      "type": "Type",
+      "customLabel": "Custom label",
+      "customPlaceholder": "e.g., Dentist, Shoot, Workout",
+      "color": "Color",
+      "start": "Start",
+      "end": "End",
+      "location": "Location",
+      "notes": "Notes"
+    },
+    "types": {
+      "task": "Task",
+      "job": "Job",
+      "meeting": "Meeting",
+      "other": "Other",
+      "otherMore": "Other…"
+    },
+    "modal": { "new": "New entry", "edit": "Edit entry" },
+    "confirmDelete": "Delete this entry?",
+    "errors": {
+      "endBeforeStart": "End time cannot be before start time.",
+      "load": "Failed to load items: {msg}",
+      "save": "Save failed: {msg}",
+      "delete": "Delete failed: {msg}"
+    },
+    "aria": { "close": "Close", "pickDate": "Pick date" }
+  },
+
+  "todo": {
+    "title": "To-Do",
+    "subtitle": "Fast, minimalist, keyboard-friendly task manager.",
+    "progress": "{done}/{total} done",
+    "addTask": {
+      "label": "Add task",
+      "placeholder": "Type and press Enter…",
+      "tip": "Tip: **Shift+Enter** to keep typing notes first.",
+      "button": "Add",
+      "buttonAria": "Add task"
+    },
+    "priority": {
+      "label": "Priority",
+      "low": "Low",
+      "med": "Med",
+      "high": "High"
+    },
+    "due": {
+      "label": "Due",
+      "badge": "Due {date}"
+    },
+    "notes": {
+      "label": "Notes",
+      "placeholder": "Optional… (Shift+Enter to add)"
+    },
+    "filters": {
+      "all": "All",
+      "today": "Today",
+      "upcoming": "Upcoming",
+      "done": "Done"
+    },
+    "showCompleted": "Show completed",
+    "search": { "placeholder": "Search… (/)" },
+    "clearDone": { "button": "Clear done", "title": "Remove all completed tasks" },
+    "actions": { "edit": "Edit", "delete": "Delete" },
+    "empty": "No tasks match. Try changing filters.",
+    "shortcuts": {
+      "title": "Shortcuts",
+      "focusAdd": "focus add",
+      "search": "search",
+      "toggleCompleted": "toggle show completed",
+      "addTask": "add task",
+      "addFromNotes": "add from notes"
+    },
+    "aria": { "toggleComplete": "Toggle complete" },
+    "editModal": {
+      "title": "Edit task",
+      "close": "Close",
+      "fields": { "title": "Title", "notes": "Notes", "priority": "Priority" },
+      "cancel": "Cancel",
+      "save": "Save"
+    }
+  },
+
+  "register": {
+    "title": "Create your account",
+    "subtitle": "Fill in your details and start using CalendarIt.",
+    "backToHome": "Back to home",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "email": "Email",
+    "password": "Password",
+    "passwordHint": "Min. 8 characters",
+    "show": "Show",
+    "hide": "Hide",
+    "gender": "Gender",
+    "genders": {
+      "female": "Female",
+      "male": "Male",
+      "other": "Other",
+      "na": "Prefer not to say"
+    },
+    "birthdate": "Birthdate",
+    "country": "Country",
+    "select": "Select…",
+    "agreeLine": "I agree to <terms>Terms & Conditions</terms> and <privacy>Privacy Policy</privacy>.",
+    "creating": "Creating account…",
+    "signup": "Sign up",
+    "haveAccount": "Already have an account?",
+    "signin": "Sign in",
+    "benefits": {
+      "0": "Keep tasks, money and a calendar in one place",
+      "1": "Weather and insights beautifully integrated",
+      "2": "Free to start — no credit card needed"
+    },
+    "errors": {
+      "firstName": "First name is required.",
+      "lastName": "Last name is required.",
+      "email": "Enter a valid email.",
+      "password": "Password must be at least 8 characters.",
+      "gender": "Please select your gender.",
+      "birthdateRequired": "Birthdate is required.",
+      "birthdateYoung": "You must be at least 13 years old.",
+      "country": "Please choose a country.",
+      "agree": "You must accept the Terms and Privacy.",
+      "failed": "Registration failed. Please try again."
+    },
+    "countries": {
+      "Latvia": "Latvia",
+      "Lithuania": "Lithuania",
+      "Estonia": "Estonia",
+      "Poland": "Poland",
+      "Germany": "Germany",
+      "Finland": "Finland",
+      "Sweden": "Sweden",
+      "Norway": "Norway",
+      "Denmark": "Denmark",
+      "United Kingdom": "United Kingdom",
+      "Ireland": "Ireland",
+      "Netherlands": "Netherlands",
+      "Belgium": "Belgium",
+      "France": "France",
+      "Spain": "Spain",
+      "Italy": "Italy",
+      "Portugal": "Portugal",
+      "Czech Republic": "Czech Republic",
+      "Slovakia": "Slovakia",
+      "Hungary": "Hungary",
+      "Romania": "Romania",
+      "Bulgaria": "Bulgaria",
+      "Greece": "Greece",
+      "United States": "United States",
+      "Canada": "Canada"
+    }
+  },
+
+  "login": {
+    "backHome": "Back to home",
+    "welcomeTitle": "Welcome back",
+    "welcomeSub": "Sign in to access your calendar, tasks and insights.",
+    "title": "Sign in",
+    "subtitle": "Welcome back! Please enter your details.",
+    "email": "Email",
+    "password": "Password",
+    "show": "Show",
+    "hide": "Hide",
+    "remember": "Remember me",
+    "forgot": "Forgot password?",
+    "signIn": "Sign in",
+    "signing": "Signing in…",
+    "noAccount": "Don’t have an account?",
+    "createOne": "Create one",
+    "invalid": "Invalid email or password."
+  },
+
+  "day": {
+    "dialogSubtitleLite": "Pick a color, add quick items, and save.",
+    "close": "Close",
+    "saveDayLog": "Save Day Log",
+    "validationError": "Please fix the highlighted fields.",
+    "saveError": "Failed to save. Try again.",
+    "recurringError": "Failed to save recurring event.",
+    "dayColor": "Day color",
+    "custom": "Custom",
+    "clear": "Clear",
+    "groceries": "Groceries",
+    "todo": "To-Do",
+    "workDiary": "Work Diary",
+    "productPlaceholder": "Add a product…",
+    "todoPlaceholder": "Type and press Enter…",
+    "add": "Add",
+    "low": "Low",
+    "med": "Med",
+    "high": "High",
+    "new": "New",
+    "yearlyEvents": "Yearly Events",
+    "eventPlaceholder": "Event title…",
+    "save": "Save",
+    "saveYearly": "Save yearly event",
+    "toastWorkSaved": "Work Diary saved",
+    "toastGroceriesOk": "Saved to Groceries",
+    "toastTodosOk": "Saved to To-Dos",
+    "toastGenericErr": "Failed to save"
+  }
+}

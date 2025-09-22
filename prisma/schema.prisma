@@ -1,0 +1,179 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("SHADOW_DATABASE_URL")
+}
+
+/**
+ * ───────────────────────
+ * Enums
+ * ───────────────────────
+ */
+enum Recurrence {
+  MONTHLY
+  YEARLY
+}
+
+enum DiaryType {
+  task
+  job
+  meeting
+  other
+}
+
+enum DiaryStatus {
+  planned
+  in_progress
+  done
+  cancelled
+}
+
+enum TodoPriority {
+  low
+  med
+  high
+}
+
+/**
+ * ───────────────────────
+ * Models
+ * ───────────────────────
+ */
+
+model User {
+  id             Int       @id @default(autoincrement())
+  email          String    @unique
+  passwordHash   String
+  firstName      String?
+  lastName       String?
+  birthdate      DateTime?
+  gender         String?
+  country        String?
+  role           String    @default("user")
+  preferredColor String?   @db.Char(7) // character(7)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt
+
+  // Relations
+  diaryEntries WorkDiaryEntry[]
+  groceries    GroceryItem[] // Grocery items owned by user
+  todoItems    TodoItem[] //  back-relation for TodoItem
+
+  labels WorkDiaryLabel[] // back relation
+
+  @@map("users")
+}
+
+model WorkDiaryEntry {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  type      DiaryType
+  label     String?
+  typeColor String?   @db.Char(7)
+  title     String?
+  notes     String?
+  location  String?
+
+  startAt DateTime  @db.Timestamptz(6)
+  endAt   DateTime? @db.Timestamptz(6)
+  allDay  Boolean   @default(false)
+
+  status     DiaryStatus @default(planned)
+  priority   Int?
+  recurrence String?
+  reminders  Json        @default("[]")
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([userId, startAt], name: "idx_diary_user_start")
+  @@index([userId, status], name: "idx_diary_user_status")
+  @@index([userId, allDay], name: "idx_diary_user_allday")
+  @@map("work_diary_entries")
+}
+
+model WorkDiaryLabel {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  name     String
+  colorHex String  @db.Char(7) // hex color, e.g. "#ffc107"
+  archived Boolean @default(false)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@unique([userId, name], name: "uniq_diarylabel_user_name")
+  @@map("work_diary_labels")
+}
+
+model GroceryItem {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  text      String
+  completed Boolean @default(false)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  @@index([userId, completed])
+  @@map("grocery_items")
+}
+
+model TodoItem {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  title    String
+  note     String?
+  done     Boolean      @default(false)
+  priority TodoPriority @default(med)
+  due      DateTime? // date-only semantics are fine with DateTime
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  @@index([userId, done, priority])
+  @@map("todo_items")
+}
+
+model DayLog {
+  id       Int      @id @default(autoincrement())
+  date     DateTime @db.Date
+  dayColor String?  @db.VarChar(7)
+  userId   Int?
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  @@unique([userId, date], name: "daylog_user_date_unique")
+}
+
+model RecurringEvent {
+  id         Int        @id @default(autoincrement())
+  userId     Int?
+  title      String
+  baseDate   DateTime   @db.Date // the seed date (e.g., 2025-09-07)
+  recurrence Recurrence
+  notes      String?
+
+  // Optional “skips” and “overrides”.
+  // Postgres supports array-of-date and JSON nicely:
+  skips     DateTime[] @db.Date
+  overrides Json? // array of { date: 'YYYY-MM-DD', title?: string, notes?: string }
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+}
