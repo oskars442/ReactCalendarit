@@ -8,6 +8,9 @@ import { signIn } from "next-auth/react";
 import { useTranslations, useLocale } from "@/lib/i18n/i18n";
 import Logo from "@/assets/logo.png";
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 type Gender = "" | "female" | "male" | "other" | "na";
 
 type Form = {

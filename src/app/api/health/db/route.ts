@@ -2,21 +2,17 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 
-// (use a singleton in real apps to avoid exhausting connections)
-const prisma = new PrismaClient();
-
-// do not pre-render; always run on the server
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+const prisma = new PrismaClient();
 
 export async function GET() {
   try {
-    // simple query to check connectivity
-    await prisma.$queryRaw`SELECT 1`;
-    return NextResponse.json({ ok: true });
-  } catch (err: any) {
-    return NextResponse.json(
-      { ok: false, error: String(err?.message ?? err) },
-      { status: 500 }
-    );
+    const r = await prisma.$queryRawUnsafe('select 1 as ok');
+    return NextResponse.json({ ok: true, r });
+  } catch (e) {
+    console.error('DB_HEALTH_ERROR', e);
+    return NextResponse.json({ ok: false, error: String(e) }, { status: 500 });
   }
 }

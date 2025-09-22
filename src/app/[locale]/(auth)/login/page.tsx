@@ -9,6 +9,9 @@ import { useParams, useRouter, usePathname } from "next/navigation";
 import { useTranslations } from "@/lib/i18n/i18n";
 import Logo from "@/assets/logo.png";
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 type Locale = "lv" | "en" | "ru";
 const LOCALE_RE = /^\/(lv|en|ru)/;
 const withLocale = (p: string, next: Locale) => p.replace(LOCALE_RE, `/${next}`);
