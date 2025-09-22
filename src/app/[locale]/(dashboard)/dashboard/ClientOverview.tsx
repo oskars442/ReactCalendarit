@@ -294,24 +294,26 @@ export default function ClientOverview() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
-      {/* Header row */}
-      <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-center">
-        <h1 className="text-2xl font-bold">{t("title")}</h1>
+{/* Header row */}
+<div className="mb-6 flex items-center justify-between gap-4 md:grid md:grid-cols-[1fr_auto_1fr]">
+  {/* Title (pa kreisi uz desktopa, pa kreisi arī uz mobilā) */}
+  <h1 className="text-2xl font-bold md:justify-self-start">{t("title")}</h1>
 
-        {/* Big centered today tile */}
-        <button
-          type="button"
-          onClick={() => setOpenDate(todayISO as ISODate)}
-          aria-label="Open today's day log"
-          className="group relative grid place-items-start rounded-[18px] border-2 border-sky-500 bg-white shadow-sm w-28 h-20 md:w-40 md:h-24 px-3 py-2 hover:bg-sky-50 focus:outline-none"
-        >
-          <span className="text-sky-600 text-4xl md:text-5xl font-semibold leading-none">{todayNum}</span>
-          <span className="absolute right-3 top-2 text-xs md:text-sm text-neutral-600 capitalize">{weekday}</span>
-          <span className="absolute right-3 bottom-2 text-xs md:text-sm text-neutral-600">{dateLabel}</span>
-        </button>
+  {/* Today tile — centrā uz desktopa, labajā uz mobilā */}
+  <button
+    type="button"
+    onClick={() => setOpenDate(todayISO as ISODate)}
+    aria-label="Open today's day log"
+    className="group relative flex flex-col justify-center rounded-2xl border-2 border-sky-500 bg-white shadow-sm w-32 sm:w-40 h-24 px-3 py-2 hover:bg-sky-50 focus:outline-none md:justify-self-center"
+  >
+    <span className="text-sky-600 text-4xl sm:text-5xl font-semibold leading-none">{todayNum}</span>
+    <span className="text-sm sm:text-base text-neutral-600 capitalize">{weekday}</span>
+    <span className="text-xs sm:text-sm text-neutral-600">{dateLabel}</span>
+  </button>
 
-        <div />
-      </div>
+  {/* Spacer tikai desktopam, lai gridam būtu 3. kolonna */}
+  <div className="hidden md:block" />
+</div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
         {/* Today’s events */}

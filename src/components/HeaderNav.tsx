@@ -38,6 +38,18 @@ export default function HeaderNav({
   const { status } = useSession();
   const isAuthed = status === "authenticated";
 
+function handleSidebarButton() {
+  const isMobile = typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches;
+  if (isMobile) {
+    window.dispatchEvent(new CustomEvent("sidebar:open"));
+  } else if (onToggleSidebar) {
+    onToggleSidebar();
+  } else {
+    // drošības nolūkos – atver arī draweru
+    window.dispatchEvent(new CustomEvent("sidebar:open"));
+  }
+}
+
   const [open, setOpen] = useState(false);              // mobile navbar
   const [sidebarSheet, setSidebarSheet] = useState(false); // public slide-over
   useEffect(() => { setOpen(false); setSidebarSheet(false); }, [pathname]);
@@ -74,20 +86,20 @@ export default function HeaderNav({
 
   // Left fixed slot: dashboard toggle (when props provided), else public App button (authed)
   const leftSlot = (() => {
-    if (isAuthed && isDashboardArea && onToggleSidebar) {
+    if (isAuthed && isDashboardArea) {
       // dashboard toggle
       return (
-        <button
-          onClick={onToggleSidebar}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/20 bg-white/15 hover:bg-white/25"
-          title={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
-        >
-          {sidebarOpen ? "⟨⟨" : (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-          )}
-        </button>
+      <button
+  onClick={handleSidebarButton}                // <— šeit
+  className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/20 bg-white/15 hover:bg-white/25"
+  title={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
+>
+  {sidebarOpen ? "⟨⟨" : (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  )}
+</button>
       );
     }
     if (isAuthed && !isDashboardArea) {
