@@ -1,3 +1,5 @@
+//src/features/weather/WeatherView.tsx
+
 "use client";
 
 import { useEffect, useMemo, useState } from "react";

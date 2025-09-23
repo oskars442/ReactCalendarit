@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import HeaderNav from "@/components/HeaderNav";
 import DashboardShell from "@/components/DashboardShell";
 import SidebarNav from "@/components/SidebarNav";
@@ -14,6 +15,8 @@ export default function DashboardLayoutClient({
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(true);
+  const pathname = usePathname();
+  const isWeather = pathname?.includes("/weather"); // ← tikai laikapstākļu lapai
 
   useEffect(() => {
     try {
@@ -30,7 +33,13 @@ export default function DashboardLayoutClient({
 
   return (
     <div className="min-h-dvh flex flex-col">
-      <header className="sticky top-0 z-40 border-b bg-white/80 backdrop-blur">
+      <header
+        className={
+          isWeather
+            ? "sticky top-0 z-40 bg-transparent" // bez border un baltā fona
+            : "sticky top-0 z-40 border-b bg-white/80 backdrop-blur"
+        }
+      >
         <HeaderNav
           locale={locale}
           sidebarOpen={open}
@@ -38,7 +47,8 @@ export default function DashboardLayoutClient({
         />
       </header>
 
-      <DashboardShell nav={<SidebarNav />} open={open}>
+      {/* noPadding = true tikai weather lapai */}
+      <DashboardShell nav={<SidebarNav />} open={open} noPadding={isWeather}>
         {children}
       </DashboardShell>
     </div>

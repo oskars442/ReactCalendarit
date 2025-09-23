@@ -39,7 +39,13 @@ type FormState = {
   notes: string;
 };
 
-type SavedLabel = { id: number; userId: number; name: string; colorHex: string; archived?: boolean };
+type SavedLabel = {
+  id: number;
+  userId: number;
+  name: string;
+  colorHex: string;
+  archived?: boolean;
+};
 
 /* =========================
    Helpers
@@ -50,11 +56,14 @@ const fmtDateLocal = (d: Date | string) => {
   return dt.toISOString().slice(0, 10);
 };
 const toLocalSQL = (dateStr: string, timeStr?: string) =>
-  `${dateStr} ${(timeStr || "00:00")}:00`;
+  `${dateStr} ${timeStr || "00:00"}:00`;
 
 const API = "/api/work";
 
-async function apiFetch<T = any>(url: string, opts: RequestInit = {}): Promise<T> {
+async function apiFetch<T = any>(
+  url: string,
+  opts: RequestInit = {}
+): Promise<T> {
   const res = await fetch(url, { credentials: "include", ...opts });
   if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
   const ct = res.headers.get("content-type") || "";
@@ -68,7 +77,8 @@ const addMinutes = (hhmm: string, mins: number) => {
   const [h, m] = hhmm.split(":").map(Number);
   const t = h * 60 + m + mins;
   const t2 = Math.max(0, Math.min(24 * 60 - 1, t));
-  const H = Math.floor(t2 / 60), M = t2 % 60;
+  const H = Math.floor(t2 / 60),
+    M = t2 % 60;
   return `${pad2(H)}:${pad2(M)}`;
 };
 const cmpHM = (a: string, b: string) => (a === b ? 0 : a < b ? -1 : 1);
@@ -80,7 +90,10 @@ const DEFAULT_COLORS: Record<Exclude<DiaryType, "other">, string> = {
 };
 function colorForItem(it: DiaryItem) {
   if (it.type === "other" && it.type_color) return it.type_color;
-  return DEFAULT_COLORS[(it.type as Exclude<DiaryType, "other">)] || DEFAULT_COLORS.task;
+  return (
+    DEFAULT_COLORS[it.type as Exclude<DiaryType, "other">] ||
+    DEFAULT_COLORS.task
+  );
 }
 function readableOn(bgHex: string) {
   try {
@@ -110,8 +123,11 @@ function addDaysISO(dateISO: string, days: number) {
 function asTypeSelectValueFromLabelId(id: number): TypeSelectValue {
   return `label:${id}`;
 }
-function parseTypeSelectValue(v: string): { kind: "label"; id: number } | { kind: "builtin"; t: DiaryType } {
-  if (v.startsWith("label:")) return { kind: "label", id: Number(v.slice("label:".length)) };
+function parseTypeSelectValue(
+  v: string
+): { kind: "label"; id: number } | { kind: "builtin"; t: DiaryType } {
+  if (v.startsWith("label:"))
+    return { kind: "label", id: Number(v.slice("label:".length)) };
   return { kind: "builtin", t: v as DiaryType };
 }
 
@@ -151,7 +167,7 @@ export default function Diary() {
   function findLabelByName(name?: string | null) {
     if (!name) return undefined;
     const key = name.trim().toLowerCase();
-    return labels.find(l => l.name.trim().toLowerCase() === key);
+    return labels.find((l) => l.name.trim().toLowerCase() === key);
   }
   async function loadLabels() {
     try {
@@ -164,7 +180,9 @@ export default function Diary() {
       console.error("Failed to load labels", e);
     }
   }
-  useEffect(() => { loadLabels(); }, []);
+  useEffect(() => {
+    loadLabels();
+  }, []);
 
   // auto-switch to Day on phones
   useEffect(() => {
@@ -199,7 +217,9 @@ export default function Diary() {
     try {
       setLoading(true);
       const data = await apiFetch<DiaryItem[]>(
-        `${API}?from=${encodeURIComponent(period.from)}&to=${encodeURIComponent(period.to)}`
+        `${API}?from=${encodeURIComponent(period.from)}&to=${encodeURIComponent(
+          period.to
+        )}`
       );
       setItems(Array.isArray(data) ? data : []);
     } catch (e: any) {
@@ -209,7 +229,9 @@ export default function Diary() {
       setLoading(false);
     }
   }
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [period.from, period.to]);
+  useEffect(() => {
+    load(); /* eslint-disable-next-line */
+  }, [period.from, period.to]);
 
   const KNOWN: DiaryType[] = ["task", "job", "meeting"];
 
@@ -231,13 +253,13 @@ export default function Diary() {
     const candidateColor =
       it.type_color ||
       (isKnown
-        ? (DEFAULT_COLORS[it.type as Exclude<DiaryType, "other">] || "#6c757d")
-        : (findLabelByName(it.label || "")?.colorHex ?? "#6c757d"));
+        ? DEFAULT_COLORS[it.type as Exclude<DiaryType, "other">] || "#6c757d"
+        : findLabelByName(it.label || "")?.colorHex ?? "#6c757d");
 
     setForm({
       id: it.id,
       typeSelect: isKnown ? it.type : "other",
-      customType: isKnown ? "" : (it.label || it.type || ""),
+      customType: isKnown ? "" : it.label || it.type || "",
       typeColor: candidateColor,
       title: it.title || "",
       startTime: it.start_at.slice(11, 16),
@@ -277,10 +299,18 @@ export default function Diary() {
           });
           if (res.ok) {
             const saved: SavedLabel = await res.json();
-            setLabels(prev => {
-              const i = prev.findIndex(p => p.name.toLowerCase() === saved.name.toLowerCase());
-              if (i >= 0) { const next = prev.slice(); next[i] = saved; return next; }
-              return [...prev, saved].sort((a,b) => a.name.localeCompare(b.name));
+            setLabels((prev) => {
+              const i = prev.findIndex(
+                (p) => p.name.toLowerCase() === saved.name.toLowerCase()
+              );
+              if (i >= 0) {
+                const next = prev.slice();
+                next[i] = saved;
+                return next;
+              }
+              return [...prev, saved].sort((a, b) =>
+                a.name.localeCompare(b.name)
+              );
             });
           } else {
             console.warn("Label upsert failed:", await res.text());
@@ -290,8 +320,12 @@ export default function Diary() {
         }
       }
 
-      const finalTypeEnum: DiaryType = form.typeSelect === "other" ? "other" : form.typeSelect;
-      const finalLabel = form.typeSelect === "other" ? (form.customType || t("types.other")) : null;
+      const finalTypeEnum: DiaryType =
+        form.typeSelect === "other" ? "other" : form.typeSelect;
+      const finalLabel =
+        form.typeSelect === "other"
+          ? form.customType || t("types.other")
+          : null;
       const finalColorHex = form.typeSelect === "other" ? form.typeColor : null;
 
       const body = {
@@ -312,7 +346,9 @@ export default function Diary() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       };
-      const url = `${API}${form.id ? `/${encodeURIComponent(String(form.id))}` : ""}`;
+      const url = `${API}${
+        form.id ? `/${encodeURIComponent(String(form.id))}` : ""
+      }`;
       await apiFetch(url, opts);
 
       setForm(null);
@@ -326,7 +362,9 @@ export default function Diary() {
   async function delItem(id: DiaryItem["id"]) {
     if (!confirm(t("confirmDelete"))) return;
     try {
-      await apiFetch(`${API}/${encodeURIComponent(String(id))}`, { method: "DELETE" });
+      await apiFetch(`${API}/${encodeURIComponent(String(id))}`, {
+        method: "DELETE",
+      });
       await load();
     } catch (e: any) {
       console.error(e);
@@ -337,18 +375,29 @@ export default function Diary() {
   /* =========================
      Layout pipeline (shared)
      ========================= */
-  type Mapped = { it: DiaryItem; absStart: number; absEnd: number; lane?: number };
+  type Mapped = {
+    it: DiaryItem;
+    absStart: number;
+    absEnd: number;
+    lane?: number;
+  };
   function normalize(data: DiaryItem[]): Mapped[] {
     return data
       .map((it) => {
         const s = parseDT(it.start_at);
-        const e = it.end_at ? parseDT(it.end_at) : new Date(s.getTime() + 60 * 60000);
+        const e = it.end_at
+          ? parseDT(it.end_at)
+          : new Date(s.getTime() + 60 * 60000);
         const absStart = s.getHours() * 60 + s.getMinutes();
         const absEnd = e.getHours() * 60 + e.getMinutes();
         return { it, absStart, absEnd };
       })
       .filter((p) => p.absEnd > 0 && p.absStart < 24 * 60)
-      .sort((a, b) => a.absStart - b.absStart || (a.absEnd - a.absStart) - (b.absEnd - b.absStart));
+      .sort(
+        (a, b) =>
+          a.absStart - b.absStart ||
+          a.absEnd - a.absStart - (b.absEnd - b.absStart)
+      );
   }
   function assignLanes(list: Mapped[]) {
     const laneEnds: number[] = [];
@@ -368,8 +417,8 @@ export default function Diary() {
   let dynStartH = DEFAULT_START_H;
   let dynEndH = DEFAULT_END_H;
   if (mappedAll.length) {
-    const minH = Math.floor(Math.min(...mappedAll.map(p => p.absStart)) / 60);
-    const maxH = Math.ceil(Math.max(...mappedAll.map(p => p.absEnd)) / 60);
+    const minH = Math.floor(Math.min(...mappedAll.map((p) => p.absStart)) / 60);
+    const maxH = Math.ceil(Math.max(...mappedAll.map((p) => p.absEnd)) / 60);
     dynStartH = Math.min(DEFAULT_START_H, clamp(minH, 0, 23));
     dynEndH = Math.max(DEFAULT_END_H, clamp(maxH, 1, 24));
   }
@@ -433,7 +482,12 @@ export default function Diary() {
     const within = mm - h * 60;
     return hourTops[h] + (hourHeights[h] / 60) * within;
   }
-  function heightFromAbsRange(a: number, b: number, it: DiaryItem, isWeek: boolean) {
+  function heightFromAbsRange(
+    a: number,
+    b: number,
+    it: DiaryItem,
+    isWeek: boolean
+  ) {
     const y1 = yFromAbsMin(a);
     const y2 = yFromAbsMin(b);
     const natural = Math.max(28, y2 - y1);
@@ -461,20 +515,27 @@ export default function Diary() {
 
     if (parsed.kind === "builtin") {
       if (parsed.t === "other") {
-        setForm({ ...form, typeSelect: "other", customType: "", typeColor: "#6c757d" });
+        setForm({
+          ...form,
+          typeSelect: "other",
+          customType: "",
+          typeColor: "#6c757d",
+        });
       } else {
         setForm({
           ...form,
           typeSelect: parsed.t,
           customType: "",
-          typeColor: DEFAULT_COLORS[parsed.t as Exclude<DiaryType, "other">] || "#6c757d",
+          typeColor:
+            DEFAULT_COLORS[parsed.t as Exclude<DiaryType, "other">] ||
+            "#6c757d",
         });
       }
       return;
     }
 
     // a saved label was chosen
-    const lbl = labels.find(l => l.id === parsed.id);
+    const lbl = labels.find((l) => l.id === parsed.id);
     if (!lbl) return;
     setForm({
       ...form,
@@ -485,50 +546,88 @@ export default function Diary() {
   };
 
   const badgeTextFor = (it: DiaryItem) =>
-    it.type === "other" ? (it.label || t("types.other")) : t(`types.${it.type}` as const);
+    it.type === "other"
+      ? it.label || t("types.other")
+      : t(`types.${it.type}` as const);
 
   /* =========================
      Week helpers
      ========================= */
   const weekDays = period.days;
   const perDayItems = useMemo(() => {
-    const map: Record<string, DiaryItem[]> = Object.fromEntries(weekDays.map(d => [d, []]));
+    const map: Record<string, DiaryItem[]> = Object.fromEntries(
+      weekDays.map((d) => [d, []])
+    );
     for (const it of items) {
       const d = it.start_at.slice(0, 10);
       if (map[d]) map[d].push(it);
     }
-    for (const d of weekDays) map[d] = map[d].sort((a,b)=>a.start_at.localeCompare(b.start_at));
+    for (const d of weekDays)
+      map[d] = map[d].sort((a, b) => a.start_at.localeCompare(b.start_at));
     return map;
   }, [items, weekDays]);
-
+  const ModeToggle = () => (
+    <div className="inline-flex rounded border border-gray-300 p-0.5 dark:border-gray-700">
+      <button
+        type="button"
+        onClick={() => setMode("day")}
+        className={`px-3 py-1 text-sm rounded ${
+          mode === "day"
+            ? "bg-gray-900 text-white dark:bg-white dark:text-gray-900"
+            : "hover:bg-gray-100 dark:hover:bg-gray-800"
+        }`}
+        aria-pressed={mode === "day"}
+      >
+        {t("day")}
+      </button>
+      <button
+        type="button"
+        onClick={() => setMode("week")}
+        className={`px-3 py-1 text-sm rounded ${
+          mode === "week"
+            ? "bg-gray-900 text-white dark:bg-white dark:text-gray-900"
+            : "hover:bg-gray-100 dark:hover:bg-gray-800"
+        }`}
+        aria-pressed={mode === "week"}
+      >
+        {t("week")}
+      </button>
+    </div>
+  );
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-lg font-semibold">{t("title")}</h1>
-        <div className="flex items-center gap-2">
-          <div className="inline-flex rounded border border-gray-300 p-0.5 dark:border-gray-700">
-            <button
-              className={`px-3 py-1 text-sm rounded ${mode === "day" ? "bg-gray-900 text-white dark:bg-white dark:text-gray-900" : "hover:bg-gray-100 dark:hover:bg-gray-800"}`}
-              onClick={() => setMode("day")}
-            >
-              {t("day")}
-            </button>
-            <button
-              className={`px-3 py-1 text-sm rounded ${mode === "week" ? "bg-gray-900 text-white dark:bg-white dark:text-gray-900" : "hover:bg-gray-100 dark:hover:bg-gray-800"}`}
-              onClick={() => setMode("week")}
-              disabled={isSmall}
-              title={isSmall ? t("aria.pickDate") : undefined}
-            >
-              {t("week")}
-            </button>
-          </div>
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Virsraksts kreisajā pusē; atbīda pārējo pa labi */}
+        <h1 className="text-lg font-semibold mr-auto">{t("title")}</h1>
 
+        {/* Diena / Nedēļa */}
+        <ModeToggle />
+
+        {/* Datums + Jauns — pa labi tajā pašā rindā uz ≥sm */}
+        <div className="hidden sm:flex items-center gap-2">
           <input
             type="date"
             value={day}
             onChange={(e) => setDay(e.target.value)}
             className="w-56 rounded border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
+            aria-label={t("aria.pickDate")}
+          />
+          <button
+            className="rounded bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-white"
+            onClick={openNew}
+          >
+            {t("actions.new")}
+          </button>
+        </div>
+
+        {/* Uz telefona datums + poga krīt nākamajā rindā */}
+        <div className="flex sm:hidden w-full items-center gap-2">
+          <input
+            type="date"
+            value={day}
+            onChange={(e) => setDay(e.target.value)}
+            className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
             aria-label={t("aria.pickDate")}
           />
           <button
@@ -549,23 +648,35 @@ export default function Diary() {
             <div className="col-span-2 relative border-r border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/40 hidden sm:block">
               <div className="sticky top-0">
                 {hourMarks.slice(0, -1).map((h, idx) => (
-                  <div key={h} className="border-b border-gray-200 px-3 py-1 text-xs text-gray-500 dark:border-gray-800" style={{ height: hourHeights[idx] }}>
+                  <div
+                    key={h}
+                    className="border-b border-gray-200 px-3 py-1 text-xs text-gray-500 dark:border-gray-800"
+                    style={{ height: hourHeights[idx] }}
+                  >
                     {String(h).padStart(2, "0")}:00
                   </div>
                 ))}
-                <div className="px-3 py-1 text-xs text-gray-500" style={{ height: hourHeights[HOURS - 1] }}>
+                <div
+                  className="px-3 py-1 text-xs text-gray-500"
+                  style={{ height: hourHeights[HOURS - 1] }}
+                >
                   {String(dynEndH).padStart(2, "0")}:00
                 </div>
               </div>
             </div>
 
             {/* Canvas */}
-            <div className="col-span-12 sm:col-span-10 relative" style={{ minHeight: totalHeight }}>
+            <div
+              className="col-span-12 sm:col-span-10 relative"
+              style={{ minHeight: totalHeight }}
+            >
               {/* Hour lines */}
               {hourMarks.map((h, idx) => (
                 <div
                   key={h}
-                  className={`absolute w-full border-t ${idx === hourMarks.length - 1 ? "border-b" : ""} border-gray-200 dark:border-gray-800`}
+                  className={`absolute w-full border-t ${
+                    idx === hourMarks.length - 1 ? "border-b" : ""
+                  } border-gray-200 dark:border-gray-800`}
                   style={{ top: hourTops[idx], height: 0 }}
                 />
               ))}
@@ -578,45 +689,109 @@ export default function Diary() {
 
                 return placed.map(({ it, absStart, absEnd, lane }) => {
                   const top = yFromAbsMin(absStart);
-                  const height = heightFromAbsRange(absStart, absEnd, it, false);
+                  const height = heightFromAbsRange(
+                    absStart,
+                    absEnd,
+                    it,
+                    false
+                  );
                   const leftPct = (lane || 0) * (laneW + gutterPct);
-                  const timeStr = `${it.start_at.slice(11, 16)}${it.end_at ? ` – ${it.end_at.slice(11, 16)}` : ""}`;
+                  const timeStr = `${it.start_at.slice(11, 16)}${
+                    it.end_at ? ` – ${it.end_at.slice(11, 16)}` : ""
+                  }`;
                   const color = colorForItem(it);
                   const badgeTxt = badgeTextFor(it);
-                  const badgeStyle: React.CSSProperties = { backgroundColor: color, color: readableOn(color) };
+                  const badgeStyle: React.CSSProperties = {
+                    backgroundColor: color,
+                    color: readableOn(color),
+                  };
 
                   return (
-                    <div key={String(it.id)} className="absolute p-1" style={{ top, left: `${leftPct}%`, width: `${laneW}%`, height, zIndex: 1 }}>
-                      <div className="flex h-full flex-col rounded border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900" style={{ borderLeft: `4px solid ${color}` }}>
+                    <div
+                      key={String(it.id)}
+                      className="absolute p-1"
+                      style={{
+                        top,
+                        left: `${leftPct}%`,
+                        width: `${laneW}%`,
+                        height,
+                        zIndex: 1,
+                      }}
+                    >
+                      <div
+                        className="flex h-full flex-col rounded border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"
+                        style={{ borderLeft: `4px solid ${color}` }}
+                      >
                         <div className="flex items-center justify-between gap-3 px-2 pt-1">
                           <div className="min-w-0 text-sm">
                             <strong>{t("fields.title")}:</strong>{" "}
-                            <span className="font-medium truncate" title={it.title || ""}>{it.title || "-"}</span>
+                            <span
+                              className="font-medium truncate"
+                              title={it.title || ""}
+                            >
+                              {it.title || "-"}
+                            </span>
                           </div>
                           <div className="flex shrink-0 items-center gap-2">
-                            <span className="text-xs text-gray-500">{timeStr}</span>
-                            <span className="rounded px-2 py-0.5 text-xs font-medium" style={badgeStyle}>{badgeTxt}</span>
+                            <span className="text-xs text-gray-500">
+                              {timeStr}
+                            </span>
+                            <span
+                              className="rounded px-2 py-0.5 text-xs font-medium"
+                              style={badgeStyle}
+                            >
+                              {badgeTxt}
+                            </span>
                           </div>
                         </div>
 
                         <div className="flex items-start justify-between gap-3 px-2 text-xs">
                           <div className="min-w-0">
                             <strong>{t("fields.location")}:</strong>{" "}
-                            <span className="text-gray-500 truncate" title={it.location || ""}>{it.location || "-"}</span>
+                            <span
+                              className="text-gray-500 truncate"
+                              title={it.location || ""}
+                            >
+                              {it.location || "-"}
+                            </span>
                           </div>
                           <div className="flex shrink-0 gap-1">
                             {/* icon-only on phone */}
-                            <button className="sm:hidden rounded border border-gray-300 px-1.5 py-0.5 text-xs hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800" onClick={() => openEdit(it)} aria-label={t("actions.edit")}>✎</button>
-                            <button className="sm:hidden rounded border border-red-300 px-1.5 py-0.5 text-xs text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20" onClick={() => delItem(it.id)} aria-label={t("actions.delete")}>🗑</button>
+                            <button
+                              className="sm:hidden rounded border border-gray-300 px-1.5 py-0.5 text-xs hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                              onClick={() => openEdit(it)}
+                              aria-label={t("actions.edit")}
+                            >
+                              ✎
+                            </button>
+                            <button
+                              className="sm:hidden rounded border border-red-300 px-1.5 py-0.5 text-xs text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                              onClick={() => delItem(it.id)}
+                              aria-label={t("actions.delete")}
+                            >
+                              🗑
+                            </button>
                             {/* text on ≥sm */}
-                            <button className="hidden sm:inline-block rounded border border-gray-300 px-2 py-1 text-xs hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800" onClick={() => openEdit(it)}>{t("actions.edit")}</button>
-                            <button className="hidden sm:inline-block rounded border border-red-300 px-2 py-1 text-xs text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20" onClick={() => delItem(it.id)}>{t("actions.delete")}</button>
+                            <button
+                              className="hidden sm:inline-block rounded border border-gray-300 px-2 py-1 text-xs hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                              onClick={() => openEdit(it)}
+                            >
+                              {t("actions.edit")}
+                            </button>
+                            <button
+                              className="hidden sm:inline-block rounded border border-red-300 px-2 py-1 text-xs text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                              onClick={() => delItem(it.id)}
+                            >
+                              {t("actions.delete")}
+                            </button>
                           </div>
                         </div>
 
                         <div className="px-2 pb-2 text-xs">
                           <strong>{t("fields.notes")}:</strong>{" "}
-                          <span className="text-gray-500 break-words whitespace-pre-wrap">{it.notes || "-"}</span>
+                          <span className="text-gray-500 break-words whitespace-pre-wrap">
+                            {it.notes || "-"}
+                          </span>
                         </div>
                         <div className="flex-1" />
                       </div>
@@ -632,10 +807,15 @@ export default function Diary() {
         <div className="overflow-hidden rounded border border-gray-200 dark:border-gray-800">
           {/* Week header */}
           <div className="grid grid-cols-12 border-b border-gray-200 bg-gray-50 text-xs font-medium dark:border-gray-800 dark:bg-gray-900/40">
-            <div className="col-span-2 px-3 py-2 hidden sm:block">{t("time")}</div>
+            <div className="col-span-2 px-3 py-2 hidden sm:block">
+              {t("time")}
+            </div>
             <div className="col-span-12 sm:col-span-10 grid grid-flow-col auto-cols-[minmax(260px,1fr)] overflow-x-auto sm:grid-cols-3 lg:grid-cols-7 sm:auto-cols-auto sm:overflow-visible">
               {weekDays.map((d) => (
-                <div key={d} className="border-l border-gray-200 px-3 py-2 dark:border-gray-800">
+                <div
+                  key={d}
+                  className="border-l border-gray-200 px-3 py-2 dark:border-gray-800"
+                >
                   {d}
                 </div>
               ))}
@@ -647,11 +827,18 @@ export default function Diary() {
             <div className="col-span-2 relative border-r border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/40 hidden sm:block">
               <div className="sticky top-0">
                 {hourMarks.slice(0, -1).map((h, idx) => (
-                  <div key={h} className="border-b border-gray-200 px-3 py-1 text-xs text-gray-500 dark:border-gray-800" style={{ height: hourHeights[idx] }}>
+                  <div
+                    key={h}
+                    className="border-b border-gray-200 px-3 py-1 text-xs text-gray-500 dark:border-gray-800"
+                    style={{ height: hourHeights[idx] }}
+                  >
                     {String(h).padStart(2, "0")}:00
                   </div>
                 ))}
-                <div className="px-3 py-1 text-xs text-gray-500" style={{ height: hourHeights[HOURS - 1] }}>
+                <div
+                  className="px-3 py-1 text-xs text-gray-500"
+                  style={{ height: hourHeights[HOURS - 1] }}
+                >
                   {String(dynEndH).padStart(2, "0")}:00
                 </div>
               </div>
@@ -665,12 +852,18 @@ export default function Diary() {
                 const laneW = (100 - gutterPct * (lanes - 1)) / lanes;
 
                 return (
-                  <div key={d} className="relative border-l border-gray-200 dark:border-gray-800" style={{ minHeight: totalHeight }}>
+                  <div
+                    key={d}
+                    className="relative border-l border-gray-200 dark:border-gray-800"
+                    style={{ minHeight: totalHeight }}
+                  >
                     {/* Hour lines */}
                     {hourMarks.map((h, idx) => (
                       <div
                         key={h}
-                        className={`absolute w-full border-t ${idx === hourMarks.length - 1 ? "border-b" : ""} border-gray-200 dark:border-gray-800`}
+                        className={`absolute w-full border-t ${
+                          idx === hourMarks.length - 1 ? "border-b" : ""
+                        } border-gray-200 dark:border-gray-800`}
                         style={{ top: hourTops[idx], height: 0 }}
                       />
                     ))}
@@ -678,15 +871,35 @@ export default function Diary() {
                     {/* Entries (stacked lines) */}
                     {placed.map(({ it, absStart, absEnd, lane }) => {
                       const top = yFromAbsMin(absStart);
-                      const height = heightFromAbsRange(absStart, absEnd, it, true);
+                      const height = heightFromAbsRange(
+                        absStart,
+                        absEnd,
+                        it,
+                        true
+                      );
                       const leftPct = (lane || 0) * (laneW + gutterPct);
-                      const timeStr = `${it.start_at.slice(11, 16)}${it.end_at ? ` – ${it.end_at.slice(11, 16)}` : ""}`;
+                      const timeStr = `${it.start_at.slice(11, 16)}${
+                        it.end_at ? ` – ${it.end_at.slice(11, 16)}` : ""
+                      }`;
                       const color = colorForItem(it);
                       const badgeTxt = badgeTextFor(it);
-                      const badgeStyle: React.CSSProperties = { backgroundColor: color, color: readableOn(color) };
+                      const badgeStyle: React.CSSProperties = {
+                        backgroundColor: color,
+                        color: readableOn(color),
+                      };
 
                       return (
-                        <div key={String(it.id)} className="absolute p-1" style={{ top, left: `${leftPct}%`, width: `${laneW}%`, height, zIndex: 1 }}>
+                        <div
+                          key={String(it.id)}
+                          className="absolute p-1"
+                          style={{
+                            top,
+                            left: `${leftPct}%`,
+                            width: `${laneW}%`,
+                            height,
+                            zIndex: 1,
+                          }}
+                        >
                           <div
                             className="flex h-full flex-col rounded border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900 overflow-hidden"
                             style={{ borderLeft: `4px solid ${color}` }}
@@ -698,7 +911,10 @@ export default function Diary() {
 
                             {/* Label + time */}
                             <div className="px-2 mt-0.5 flex items-center gap-2">
-                              <span className="inline-block rounded px-2 py-0.5 text-xs font-medium" style={badgeStyle}>
+                              <span
+                                className="inline-block rounded px-2 py-0.5 text-xs font-medium"
+                                style={badgeStyle}
+                              >
                                 {badgeTxt}
                               </span>
                               <span className="text-xs text-gray-500">
@@ -708,11 +924,33 @@ export default function Diary() {
 
                             {/* Buttons */}
                             <div className="px-2 mt-1 flex gap-1">
-                              <button className="sm:hidden rounded border border-gray-300 px-1.5 py-0.5 text-xs hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800" onClick={() => openEdit(it)} aria-label={t("actions.edit")}>✎</button>
-                              <button className="sm:hidden rounded border border-red-300 px-1.5 py-0.5 text-xs text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20" onClick={() => delItem(it.id)} aria-label={t("actions.delete")}>🗑</button>
+                              <button
+                                className="sm:hidden rounded border border-gray-300 px-1.5 py-0.5 text-xs hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                                onClick={() => openEdit(it)}
+                                aria-label={t("actions.edit")}
+                              >
+                                ✎
+                              </button>
+                              <button
+                                className="sm:hidden rounded border border-red-300 px-1.5 py-0.5 text-xs text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                                onClick={() => delItem(it.id)}
+                                aria-label={t("actions.delete")}
+                              >
+                                🗑
+                              </button>
 
-                              <button className="hidden sm:inline-block rounded border border-gray-300 px-2 py-0.5 text-xs hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800" onClick={() => openEdit(it)}>{t("actions.edit")}</button>
-                              <button className="hidden sm:inline-block rounded border border-red-300 px-2 py-0.5 text-xs text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20" onClick={() => delItem(it.id)}>{t("actions.delete")}</button>
+                              <button
+                                className="hidden sm:inline-block rounded border border-gray-300 px-2 py-0.5 text-xs hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                                onClick={() => openEdit(it)}
+                              >
+                                {t("actions.edit")}
+                              </button>
+                              <button
+                                className="hidden sm:inline-block rounded border border-red-300 px-2 py-0.5 text-xs text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                                onClick={() => delItem(it.id)}
+                              >
+                                {t("actions.delete")}
+                              </button>
                             </div>
 
                             {/* Location */}
@@ -742,23 +980,44 @@ export default function Diary() {
 
       {/* Modal */}
       {form && (
-        <div className="fixed inset-0 z-[5000] bg-black/45" onKeyDown={(e) => e.key === "Escape" && setForm(null)}>
+        <div
+          className="fixed inset-0 z-[5000] bg-black/45"
+          onKeyDown={(e) => e.key === "Escape" && setForm(null)}
+        >
           <div className="flex h-full items-center justify-center p-4">
             <div className="w-[560px] overflow-hidden rounded border border-gray-200 bg-white shadow dark:border-gray-800 dark:bg-gray-900">
               <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-800">
-                <div className="font-medium">{form.id ? t("modal.edit") : t("modal.new")}</div>
-                <button className="h-6 w-6 rounded hover:bg-gray-100 dark:hover:bg-gray-800" onClick={() => setForm(null)} aria-label={t("aria.close")}>✕</button>
+                <div className="font-medium">
+                  {form.id ? t("modal.edit") : t("modal.new")}
+                </div>
+                <button
+                  className="h-6 w-6 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                  onClick={() => setForm(null)}
+                  aria-label={t("aria.close")}
+                >
+                  ✕
+                </button>
               </div>
 
               <div className="space-y-3 px-4 py-4">
                 <div>
-                  <label className="mb-1 block text-sm font-medium">{t("fields.title")}</label>
-                  <input className="w-full rounded border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+                  <label className="mb-1 block text-sm font-medium">
+                    {t("fields.title")}
+                  </label>
+                  <input
+                    className="w-full rounded border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
+                    value={form.title}
+                    onChange={(e) =>
+                      setForm({ ...form, title: e.target.value })
+                    }
+                  />
                 </div>
 
                 <div className="grid grid-cols-12 gap-3">
                   <div className="col-span-4">
-                    <label className="mb-1 block text-sm font-medium">{t("fields.type")}</label>
+                    <label className="mb-1 block text-sm font-medium">
+                      {t("fields.type")}
+                    </label>
                     <select
                       className="w-full rounded border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
                       value={selectedTypeValue}
@@ -771,9 +1030,14 @@ export default function Diary() {
 
                       {/* Saved labels before Other… */}
                       {labels.length > 0 && (
-                        <optgroup label={t("labels.saved", { default: "Labels" })}>
+                        <optgroup
+                          label={t("labels.saved", { default: "Labels" })}
+                        >
                           {labels.map((l) => (
-                            <option key={l.id} value={asTypeSelectValueFromLabelId(l.id)}>
+                            <option
+                              key={l.id}
+                              value={asTypeSelectValueFromLabelId(l.id)}
+                            >
                               {l.name}
                             </option>
                           ))}
@@ -787,63 +1051,107 @@ export default function Diary() {
                   {form.typeSelect === "other" && (
                     <>
                       <div className="col-span-5">
-                        <label className="mb-1 block text-sm font-medium">{t("fields.customLabel")}</label>
+                        <label className="mb-1 block text-sm font-medium">
+                          {t("fields.customLabel")}
+                        </label>
                         {/* AFTER — no dropdown */}
-<input
-  autoComplete="off"
-  className="w-full rounded border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
-  placeholder={t("fields.customPlaceholder")}
-  value={form.customType}
-  onChange={(e) => {
-    const name = e.target.value;
-    const match = findLabelByName(name); // still lets you auto-set color when the typed text matches a saved label
-    setForm({
-      ...form,
-      customType: name,
-      typeColor: match ? match.colorHex : form.typeColor,
-    });
-  }}
-/>
-
+                        <input
+                          autoComplete="off"
+                          className="w-full rounded border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
+                          placeholder={t("fields.customPlaceholder")}
+                          value={form.customType}
+                          onChange={(e) => {
+                            const name = e.target.value;
+                            const match = findLabelByName(name); // still lets you auto-set color when the typed text matches a saved label
+                            setForm({
+                              ...form,
+                              customType: name,
+                              typeColor: match
+                                ? match.colorHex
+                                : form.typeColor,
+                            });
+                          }}
+                        />
                       </div>
                       <div className="col-span-3">
-                        <label className="mb-1 block text-sm font-medium">{t("fields.color")}</label>
+                        <label className="mb-1 block text-sm font-medium">
+                          {t("fields.color")}
+                        </label>
                         <input
                           type="color"
                           className="h-[38px] w-full rounded border border-gray-300 dark:border-gray-700 dark:bg-gray-800"
                           value={form.typeColor}
-                          onChange={(e) => setForm({ ...form, typeColor: e.target.value })}
+                          onChange={(e) =>
+                            setForm({ ...form, typeColor: e.target.value })
+                          }
                         />
                       </div>
                     </>
                   )}
 
                   <div className="col-span-4">
-                    <label className="mb-1 block text-sm font-medium">{t("fields.start")}</label>
-                    <input type="time" className="w-full rounded border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800" value={form.startTime} onChange={(e) => onStartChange(e.target.value)} />
+                    <label className="mb-1 block text-sm font-medium">
+                      {t("fields.start")}
+                    </label>
+                    <input
+                      type="time"
+                      className="w-full rounded border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
+                      value={form.startTime}
+                      onChange={(e) => onStartChange(e.target.value)}
+                    />
                   </div>
                   <div className="col-span-4">
-                    <label className="mb-1 block text-sm font-medium">{t("fields.end")}</label>
-                    <input type="time" className="w-full rounded border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800" value={form.endTime} onChange={(e) => onEndChange(e.target.value)} />
+                    <label className="mb-1 block text-sm font-medium">
+                      {t("fields.end")}
+                    </label>
+                    <input
+                      type="time"
+                      className="w-full rounded border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
+                      value={form.endTime}
+                      onChange={(e) => onEndChange(e.target.value)}
+                    />
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium">{t("fields.location")}</label>
-                  <input className="w-full rounded border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+                  <label className="mb-1 block text-sm font-medium">
+                    {t("fields.location")}
+                  </label>
+                  <input
+                    className="w-full rounded border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
+                    value={form.location}
+                    onChange={(e) =>
+                      setForm({ ...form, location: e.target.value })
+                    }
+                  />
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium">{t("fields.notes")}</label>
-                  <textarea rows={3} className="w-full rounded border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+                  <label className="mb-1 block text-sm font-medium">
+                    {t("fields.notes")}
+                  </label>
+                  <textarea
+                    rows={3}
+                    className="w-full rounded border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
+                    value={form.notes}
+                    onChange={(e) =>
+                      setForm({ ...form, notes: e.target.value })
+                    }
+                  />
                 </div>
               </div>
 
               <div className="flex justify-end gap-2 border-t border-gray-200 px-4 py-3 dark:border-gray-800">
-                <button className="rounded border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800" onClick={() => setForm(null)}>
+                <button
+                  className="rounded border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                  onClick={() => setForm(null)}
+                >
                   {t("actions.cancel")}
                 </button>
-                <button className="rounded bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-white" onClick={save}>
+                <button
+                  className="rounded bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-white"
+                  onClick={save}
+                >
                   {t("actions.save")}
                 </button>
               </div>

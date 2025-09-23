@@ -355,9 +355,6 @@ export default function TodoPage() {
               placeholder={t("addTask.placeholder")}
               className="mt-1 w-full rounded-xl border border-neutral-200/60 bg-white/70 px-3.5 py-2.5 outline-none ring-cyan-400/40 focus:ring-2 dark:border-neutral-800/80 dark:bg-neutral-900"
             />
-            <div className="mt-1 text-[11px] text-neutral-500 dark:text-neutral-400">
-              {t("addTask.tip")}
-            </div>
           </div>
 
           <div className="w-full md:w-44">
@@ -565,18 +562,6 @@ export default function TodoPage() {
           }}
         />
       )}
-
-      {/* Shortcuts helper */}
-      <div className="mt-10 rounded-xl border border-neutral-200/60 p-4 text-sm text-neutral-600 dark:border-neutral-800/80 dark:text-neutral-300">
-        <div className="mb-2 font-medium">{t("shortcuts.title")}</div>
-        <div className="flex flex-wrap gap-4">
-          <kbd className="rounded-md border px-2 py-1">n</kbd> {t("shortcuts.focusAdd")}
-          <kbd className="rounded-md border px-2 py-1">/</kbd> {t("shortcuts.search")}
-          <kbd className="rounded-md border px-2 py-1">a</kbd> {t("shortcuts.toggleCompleted")}
-          <kbd className="rounded-md border px-2 py-1">Enter</kbd> {t("shortcuts.addTask")}
-          <kbd className="rounded-md border px-2 py-1">Shift+Enter</kbd> {t("shortcuts.addFromNotes")}
-        </div>
-      </div>
     </div>
   );
 }

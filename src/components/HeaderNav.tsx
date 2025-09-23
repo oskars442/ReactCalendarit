@@ -9,6 +9,7 @@ import { useTranslations } from "@/lib/i18n/i18n";
 import { useSession } from "next-auth/react";
 import SidebarNav from "@/components/SidebarNav";
 import Logo from "@/assets/logo.png";
+import SignOutButton from "@/components/SignOutButton";
 
 type Locale = "lv" | "en" | "ru";
 
@@ -37,6 +38,7 @@ export default function HeaderNav({
   const router = useRouter();
   const { status } = useSession();
   const isAuthed = status === "authenticated";
+  const tNav = useTranslations("nav");
 
 function handleSidebarButton() {
   const isMobile = typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches;
@@ -50,9 +52,25 @@ function handleSidebarButton() {
   }
 }
 
-  const [open, setOpen] = useState(false);              // mobile navbar
-  const [sidebarSheet, setSidebarSheet] = useState(false); // public slide-over
-  useEffect(() => { setOpen(false); setSidebarSheet(false); }, [pathname]);
+const [open, setOpen] = useState(false);
+const [sidebarSheet, setSidebarSheet] = useState(false);
+
+useEffect(() => { 
+  setOpen(false); 
+  setSidebarSheet(false); 
+}, [pathname]);
+
+useEffect(() => {
+  if (typeof document === "undefined") return;
+  const { style } = document.body;
+  const prev = style.overflow;
+  if (sidebarSheet) {
+    style.overflow = "hidden";
+  } else {
+    style.overflow = prev || "";
+  }
+  return () => { style.overflow = prev || ""; };
+}, [sidebarSheet]);
 
   // Is this a dashboard route?
   const parts = pathname.split("/").filter(Boolean);
@@ -187,18 +205,81 @@ function handleSidebarButton() {
       )}
 
       {/* Public slide-over App menu (unchanged) */}
-      {sidebarSheet && (
-        <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setSidebarSheet(false)} aria-hidden />
-          <div className="absolute inset-y-0 left-0 w-[280px] max-w-[85vw] bg-white shadow-xl p-3 overflow-y-auto">
-            <div className="mb-2 flex items-center justify-between">
-              <div className="text-sm font-semibold text-neutral-700">App menu</div>
-              <button onClick={() => setSidebarSheet(false)} className="rounded-md p-1 text-neutral-600 hover:bg-neutral-100" aria-label="Close">✕</button>
-            </div>
-            <SidebarNav />
+ {sidebarSheet && (
+  <div className="fixed inset-0 z-[90]">
+    {/* Backdrop */}
+    <div
+      className="absolute inset-0 bg-black/40"
+      onClick={() => setSidebarSheet(false)}
+      aria-hidden
+    />
+
+    {/* Panelis: pilnekrāna uz mobīlā, šaurs slide-over uz desktopa */}
+    <aside
+      role="dialog"
+      aria-modal="true"
+      className={`
+        absolute bg-white shadow-xl flex flex-col transition-transform duration-200
+        /* mobile: fullscreen */
+        inset-0
+        /* desktop (>= md): šaurs panelis kreisajā malā */
+        md:inset-y-0 md:left-0 md:right-auto md:top-0 md:bottom-0 md:w-[320px]
+      `}
+    >
+      {/* Header rinda */}
+      <div className="flex items-center justify-between px-4 py-3 border-b">
+        <div className="text-sm font-semibold text-neutral-700">App menu</div>
+        <button
+          onClick={() => setSidebarSheet(false)}
+          className="rounded-md p-2 text-neutral-600 hover:bg-neutral-100"
+          aria-label="Close"
+        >
+          ✕
+        </button>
+      </div>
+
+      {/* Saturs */}
+      <div className="flex-1 overflow-y-auto px-3 py-3">
+        <nav className="space-y-1">
+          {[
+            { segment: "dashboard",  key: "overview" },
+            { segment: "calendar",   key: "calendar" },
+            { segment: "work-diary", key: "workDiary" },
+            { segment: "todo",       key: "todo" },
+            { segment: "workout",    key: "workout" },
+            { segment: "groceries",  key: "groceries" },
+            { segment: "weather",    key: "weather" },
+            { segment: "stats",      key: "stats" },
+          ].map(({ segment, key }) => {
+            const href = `/${locale}/${segment}`;
+            const active = pathname === href || pathname.startsWith(href + "/");
+            return (
+              <Link
+                key={segment}
+                href={href}
+                onClick={() => setSidebarSheet(false)}
+                aria-current={active ? "page" : undefined}
+                className={`flex h-12 items-center rounded-md px-3 text-[16px] transition-colors
+                  ${active
+                    ? "bg-neutral-100 font-semibold text-neutral-900"
+                    : "text-neutral-700 hover:bg-neutral-50"}`}
+              >
+                {tNav(key)}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {isAuthed ? (
+          <div className="mt-4 pl-1 pr-3">
+            <SignOutButton className="w-full" />
           </div>
-        </div>
-      )}
+        ) : null}
+      </div>
+    </aside>
+  </div>
+)}
+
     </header>
   );
 }
