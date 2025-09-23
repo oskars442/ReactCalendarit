@@ -412,8 +412,8 @@ export default function TodoPage() {
       </section>
 
       {/* Toolbar */}
-      <section className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="flex gap-2">
+<section className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+  <div className="flex flex-wrap items-center gap-2">
           {(["all", "today", "upcoming", "done"] as const).map((f) => (
             <button
               key={f}
@@ -428,7 +428,7 @@ export default function TodoPage() {
               {t(`filters.${f}`)}
             </button>
           ))}
-          <div className="ml-1 flex items-center gap-2 rounded-full border border-neutral-200 px-3 py-1.5 dark:border-neutral-800">
+          <div className="ml-0 md:ml-1 shrink-0 flex items-center gap-2 rounded-full border border-neutral-200 px-3 py-1.5 dark:border-neutral-800">
             <input
               id="toggle-completed"
               type="checkbox"
@@ -441,14 +441,14 @@ export default function TodoPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="relative">
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <div className="relative w-full md:w-64">
             <input
               id="todo-search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t("search.placeholder")}
-              className="w-64 rounded-xl border border-neutral-200/60 bg-white/70 pl-10 pr-3.5 py-2.5 outline-none ring-cyan-400/40 focus:ring-2 dark:border-neutral-800/80 dark:bg-neutral-900"
+               className="w-full rounded-xl border border-neutral-200/60 bg-white/70 pl-10 pr-3.5 py-2.5 outline-none ring-cyan-400/40 focus:ring-2 dark:border-neutral-800/80 dark:bg-neutral-900"
             />
             <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500">
               🔎
@@ -483,7 +483,7 @@ export default function TodoPage() {
                 aria-label={t("aria.toggleComplete")}
               />
               <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
+                 <div className="flex flex-wrap items-center gap-2 min-w-0">
                   <h3
                     className={classNames(
                       "break-words font-semibold leading-6",

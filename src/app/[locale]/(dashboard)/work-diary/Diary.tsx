@@ -639,35 +639,211 @@ export default function Diary() {
         </div>
       </div>
 
-      {/* ==== GRID ==== */}
-      {mode === "day" ? (
-        /* --------- DAY VIEW --------- */
-        <div className="overflow-hidden rounded border border-gray-200 dark:border-gray-800">
-          <div className="grid grid-cols-12">
-            {/* Time rail (hidden on phones) */}
-            <div className="col-span-2 relative border-r border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/40 hidden sm:block">
-              <div className="sticky top-0">
-                {hourMarks.slice(0, -1).map((h, idx) => (
-                  <div
-                    key={h}
-                    className="border-b border-gray-200 px-3 py-1 text-xs text-gray-500 dark:border-gray-800"
-                    style={{ height: hourHeights[idx] }}
-                  >
-                    {String(h).padStart(2, "0")}:00
-                  </div>
-                ))}
+  {/* ==== GRID ==== */}
+{mode === "day" ? (
+  /* --------- DAY VIEW --------- */
+  <div className="overflow-hidden rounded border border-gray-200 dark:border-gray-800">
+    {/* Phone: 2 cols [time | canvas]; ≥sm: original 12-col grid */}
+    <div className="grid grid-cols-[48px_1fr] sm:grid-cols-12">
+      {/* Time rail – visible on phone (compact), spans 2 cols on ≥sm */}
+      <div className="relative border-r border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900/40 sm:col-span-2">
+        <div className="sticky top-0">
+          {hourMarks.slice(0, -1).map((h, idx) => (
+            <div
+              key={h}
+              className="border-b border-gray-200 px-1.5 py-1 text-[11px] text-gray-500 dark:border-gray-800"
+              style={{ height: hourHeights[idx] }}
+            >
+              {String(h).padStart(2, "0")}:00
+            </div>
+          ))}
+          <div
+            className="px-1.5 py-1 text-[11px] text-gray-500"
+            style={{ height: hourHeights[HOURS - 1] }}
+          >
+            {String(dynEndH).padStart(2, "0")}:00
+          </div>
+        </div>
+      </div>
+
+      {/* Canvas */}
+      <div
+        className="relative sm:col-span-10"
+        style={{ minHeight: totalHeight }}
+      >
+        {/* Hour lines */}
+        {hourMarks.map((h, idx) => (
+          <div
+            key={h}
+            className={`absolute w-full border-t ${
+              idx === hourMarks.length - 1 ? "border-b" : ""
+            } border-gray-200 dark:border-gray-800`}
+            style={{ top: hourTops[idx], height: 0 }}
+          />
+        ))}
+
+        {/* Entries */}
+        {(() => {
+          const dayItems = perDayItems[weekDays[0]] || [];
+          const { placed, lanes } = assignLanes(normalize(dayItems));
+          const laneW = (100 - gutterPct * (lanes - 1)) / lanes;
+
+          return placed.map(({ it, absStart, absEnd, lane }) => {
+            const top = yFromAbsMin(absStart);
+            const height = heightFromAbsRange(absStart, absEnd, it, false);
+            const leftPct = (lane || 0) * (laneW + gutterPct);
+            const timeStr = `${it.start_at.slice(11, 16)}${
+              it.end_at ? ` – ${it.end_at.slice(11, 16)}` : ""
+            }`;
+            const color = colorForItem(it);
+            const badgeTxt = badgeTextFor(it);
+            const badgeStyle: React.CSSProperties = {
+              backgroundColor: color,
+              color: readableOn(color),
+            };
+
+            return (
+              <div
+                key={String(it.id)}
+                className="absolute p-1"
+                style={{
+                  top,
+                  left: `${leftPct}%`,
+                  width: `${laneW}%`,
+                  height,
+                  zIndex: 1,
+                }}
+              >
                 <div
-                  className="px-3 py-1 text-xs text-gray-500"
-                  style={{ height: hourHeights[HOURS - 1] }}
+                  className="flex h-full flex-col rounded border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"
+                  style={{ borderLeft: `4px solid ${color}` }}
                 >
-                  {String(dynEndH).padStart(2, "0")}:00
+                  <div className="flex items-center justify-between gap-3 px-2 pt-1">
+                    <div className="min-w-0 text-sm">
+                      <strong>{t("fields.title")}:</strong>{" "}
+                      <span className="font-medium truncate" title={it.title || ""}>
+                        {it.title || "-"}
+                      </span>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span className="text-xs text-gray-500">{timeStr}</span>
+                      <span
+                        className="rounded px-2 py-0.5 text-xs font-medium"
+                        style={badgeStyle}
+                      >
+                        {badgeTxt}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start justify-between gap-3 px-2 text-xs">
+                    <div className="min-w-0">
+                      <strong>{t("fields.location")}:</strong>{" "}
+                      <span className="text-gray-500 truncate" title={it.location || ""}>
+                        {it.location || "-"}
+                      </span>
+                    </div>
+                    <div className="flex shrink-0 gap-1">
+                      {/* icon-only on phone */}
+                      <button
+                        className="sm:hidden rounded border border-gray-300 px-1.5 py-0.5 text-xs hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                        onClick={() => openEdit(it)}
+                        aria-label={t("actions.edit")}
+                      >
+                        ✎
+                      </button>
+                      <button
+                        className="sm:hidden rounded border border-red-300 px-1.5 py-0.5 text-xs text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                        onClick={() => delItem(it.id)}
+                        aria-label={t("actions.delete")}
+                      >
+                        🗑
+                      </button>
+                      {/* text on ≥sm */}
+                      <button
+                        className="hidden sm:inline-block rounded border border-gray-300 px-2 py-1 text-xs hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                        onClick={() => openEdit(it)}
+                      >
+                        {t("actions.edit")}
+                      </button>
+                      <button
+                        className="hidden sm:inline-block rounded border border-red-300 px-2 py-1 text-xs text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                        onClick={() => delItem(it.id)}
+                      >
+                        {t("actions.delete")}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="px-2 pb-2 text-xs">
+                    <strong>{t("fields.notes")}:</strong>{" "}
+                    <span className="text-gray-500 break-words whitespace-pre-wrap">
+                      {it.notes || "-"}
+                    </span>
+                  </div>
+                  <div className="flex-1" />
                 </div>
               </div>
-            </div>
+            );
+          });
+        })()}
+      </div>
+    </div>
+  </div>
+) : (
+  /* --------- WEEK VIEW (stacked, responsive) --------- */
+  <div className="overflow-hidden rounded border border-gray-200 dark:border-gray-800">
+    {/* Week header – phone: 2 cols [time label | days]; ≥sm: original */}
+    <div className="grid grid-cols-[48px_1fr] sm:grid-cols-12 border-b border-gray-200 bg-gray-50 text-xs font-medium dark:border-gray-800 dark:bg-gray-900/40">
+      <div className="px-2 py-2 text-[11px] text-gray-500 sm:col-span-2">
+        {t("time")}
+      </div>
+      <div className="grid grid-flow-col auto-cols-[minmax(260px,1fr)] overflow-x-auto sm:col-span-10 sm:grid-cols-3 lg:grid-cols-7 sm:auto-cols-auto sm:overflow-visible">
+        {weekDays.map((d) => (
+          <div
+            key={d}
+            className="border-l border-gray-200 px-3 py-2 dark:border-gray-800"
+          >
+            {d}
+          </div>
+        ))}
+      </div>
+    </div>
 
-            {/* Canvas */}
+    {/* Body – phone: 2 cols [time | columns]; ≥sm: original */}
+    <div className="grid grid-cols-[48px_1fr] sm:grid-cols-12">
+      {/* Time rail – visible on phone (compact) and spans 2 cols on ≥sm */}
+      <div className="relative border-r border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900/40 sm:col-span-2">
+        <div className="sticky top-0">
+          {hourMarks.slice(0, -1).map((h, idx) => (
             <div
-              className="col-span-12 sm:col-span-10 relative"
+              key={h}
+              className="border-b border-gray-200 px-1.5 py-1 text-[11px] text-gray-500 dark:border-gray-800"
+              style={{ height: hourHeights[idx] }}
+            >
+              {String(h).padStart(2, "0")}:00
+            </div>
+          ))}
+          <div
+            className="px-1.5 py-1 text-[11px] text-gray-500"
+            style={{ height: hourHeights[HOURS - 1] }}
+          >
+            {String(dynEndH).padStart(2, "0")}:00
+          </div>
+        </div>
+      </div>
+
+      {/* Day columns */}
+      <div className="grid grid-flow-col auto-cols-[minmax(260px,1fr)] overflow-x-auto sm:col-span-10 sm:grid-cols-3 lg:grid-cols-7 sm:auto-cols-auto sm:overflow-visible">
+        {weekDays.map((d) => {
+          const dayItems = perDayItems[d] || [];
+          const { placed, lanes } = assignLanes(normalize(dayItems));
+          const laneW = (100 - gutterPct * (lanes - 1)) / lanes;
+
+          return (
+            <div
+              key={d}
+              className="relative border-l border-gray-200 dark:border-gray-800"
               style={{ minHeight: totalHeight }}
             >
               {/* Hour lines */}
@@ -681,300 +857,107 @@ export default function Diary() {
                 />
               ))}
 
-              {/* Entries */}
-              {(() => {
-                const dayItems = perDayItems[weekDays[0]] || [];
-                const { placed, lanes } = assignLanes(normalize(dayItems));
-                const laneW = (100 - gutterPct * (lanes - 1)) / lanes;
-
-                return placed.map(({ it, absStart, absEnd, lane }) => {
-                  const top = yFromAbsMin(absStart);
-                  const height = heightFromAbsRange(
-                    absStart,
-                    absEnd,
-                    it,
-                    false
-                  );
-                  const leftPct = (lane || 0) * (laneW + gutterPct);
-                  const timeStr = `${it.start_at.slice(11, 16)}${
-                    it.end_at ? ` – ${it.end_at.slice(11, 16)}` : ""
-                  }`;
-                  const color = colorForItem(it);
-                  const badgeTxt = badgeTextFor(it);
-                  const badgeStyle: React.CSSProperties = {
-                    backgroundColor: color,
-                    color: readableOn(color),
-                  };
-
-                  return (
-                    <div
-                      key={String(it.id)}
-                      className="absolute p-1"
-                      style={{
-                        top,
-                        left: `${leftPct}%`,
-                        width: `${laneW}%`,
-                        height,
-                        zIndex: 1,
-                      }}
-                    >
-                      <div
-                        className="flex h-full flex-col rounded border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"
-                        style={{ borderLeft: `4px solid ${color}` }}
-                      >
-                        <div className="flex items-center justify-between gap-3 px-2 pt-1">
-                          <div className="min-w-0 text-sm">
-                            <strong>{t("fields.title")}:</strong>{" "}
-                            <span
-                              className="font-medium truncate"
-                              title={it.title || ""}
-                            >
-                              {it.title || "-"}
-                            </span>
-                          </div>
-                          <div className="flex shrink-0 items-center gap-2">
-                            <span className="text-xs text-gray-500">
-                              {timeStr}
-                            </span>
-                            <span
-                              className="rounded px-2 py-0.5 text-xs font-medium"
-                              style={badgeStyle}
-                            >
-                              {badgeTxt}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-start justify-between gap-3 px-2 text-xs">
-                          <div className="min-w-0">
-                            <strong>{t("fields.location")}:</strong>{" "}
-                            <span
-                              className="text-gray-500 truncate"
-                              title={it.location || ""}
-                            >
-                              {it.location || "-"}
-                            </span>
-                          </div>
-                          <div className="flex shrink-0 gap-1">
-                            {/* icon-only on phone */}
-                            <button
-                              className="sm:hidden rounded border border-gray-300 px-1.5 py-0.5 text-xs hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
-                              onClick={() => openEdit(it)}
-                              aria-label={t("actions.edit")}
-                            >
-                              ✎
-                            </button>
-                            <button
-                              className="sm:hidden rounded border border-red-300 px-1.5 py-0.5 text-xs text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
-                              onClick={() => delItem(it.id)}
-                              aria-label={t("actions.delete")}
-                            >
-                              🗑
-                            </button>
-                            {/* text on ≥sm */}
-                            <button
-                              className="hidden sm:inline-block rounded border border-gray-300 px-2 py-1 text-xs hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
-                              onClick={() => openEdit(it)}
-                            >
-                              {t("actions.edit")}
-                            </button>
-                            <button
-                              className="hidden sm:inline-block rounded border border-red-300 px-2 py-1 text-xs text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
-                              onClick={() => delItem(it.id)}
-                            >
-                              {t("actions.delete")}
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="px-2 pb-2 text-xs">
-                          <strong>{t("fields.notes")}:</strong>{" "}
-                          <span className="text-gray-500 break-words whitespace-pre-wrap">
-                            {it.notes || "-"}
-                          </span>
-                        </div>
-                        <div className="flex-1" />
-                      </div>
-                    </div>
-                  );
-                });
-              })()}
-            </div>
-          </div>
-        </div>
-      ) : (
-        /* --------- WEEK VIEW (stacked, responsive) --------- */
-        <div className="overflow-hidden rounded border border-gray-200 dark:border-gray-800">
-          {/* Week header */}
-          <div className="grid grid-cols-12 border-b border-gray-200 bg-gray-50 text-xs font-medium dark:border-gray-800 dark:bg-gray-900/40">
-            <div className="col-span-2 px-3 py-2 hidden sm:block">
-              {t("time")}
-            </div>
-            <div className="col-span-12 sm:col-span-10 grid grid-flow-col auto-cols-[minmax(260px,1fr)] overflow-x-auto sm:grid-cols-3 lg:grid-cols-7 sm:auto-cols-auto sm:overflow-visible">
-              {weekDays.map((d) => (
-                <div
-                  key={d}
-                  className="border-l border-gray-200 px-3 py-2 dark:border-gray-800"
-                >
-                  {d}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-12">
-            {/* Time rail (hidden on phones) */}
-            <div className="col-span-2 relative border-r border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/40 hidden sm:block">
-              <div className="sticky top-0">
-                {hourMarks.slice(0, -1).map((h, idx) => (
-                  <div
-                    key={h}
-                    className="border-b border-gray-200 px-3 py-1 text-xs text-gray-500 dark:border-gray-800"
-                    style={{ height: hourHeights[idx] }}
-                  >
-                    {String(h).padStart(2, "0")}:00
-                  </div>
-                ))}
-                <div
-                  className="px-3 py-1 text-xs text-gray-500"
-                  style={{ height: hourHeights[HOURS - 1] }}
-                >
-                  {String(dynEndH).padStart(2, "0")}:00
-                </div>
-              </div>
-            </div>
-
-            {/* Day columns */}
-            <div className="col-span-12 sm:col-span-10 grid grid-flow-col auto-cols-[minmax(260px,1fr)] overflow-x-auto sm:grid-cols-3 lg:grid-cols-7 sm:auto-cols-auto sm:overflow-visible">
-              {weekDays.map((d) => {
-                const dayItems = perDayItems[d] || [];
-                const { placed, lanes } = assignLanes(normalize(dayItems));
-                const laneW = (100 - gutterPct * (lanes - 1)) / lanes;
+              {/* Entries (stacked lines) */}
+              {placed.map(({ it, absStart, absEnd, lane }) => {
+                const top = yFromAbsMin(absStart);
+                const height = heightFromAbsRange(absStart, absEnd, it, true);
+                const leftPct = (lane || 0) * (laneW + gutterPct);
+                const timeStr = `${it.start_at.slice(11, 16)}${
+                  it.end_at ? ` – ${it.end_at.slice(11, 16)}` : ""
+                }`;
+                const color = colorForItem(it);
+                const badgeTxt = badgeTextFor(it);
+                const badgeStyle: React.CSSProperties = {
+                  backgroundColor: color,
+                  color: readableOn(color),
+                };
 
                 return (
                   <div
-                    key={d}
-                    className="relative border-l border-gray-200 dark:border-gray-800"
-                    style={{ minHeight: totalHeight }}
+                    key={String(it.id)}
+                    className="absolute p-1"
+                    style={{
+                      top,
+                      left: `${leftPct}%`,
+                      width: `${laneW}%`,
+                      height,
+                      zIndex: 1,
+                    }}
                   >
-                    {/* Hour lines */}
-                    {hourMarks.map((h, idx) => (
-                      <div
-                        key={h}
-                        className={`absolute w-full border-t ${
-                          idx === hourMarks.length - 1 ? "border-b" : ""
-                        } border-gray-200 dark:border-gray-800`}
-                        style={{ top: hourTops[idx], height: 0 }}
-                      />
-                    ))}
+                    <div
+                      className="flex h-full flex-col rounded border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900 overflow-hidden"
+                      style={{ borderLeft: `4px solid ${color}` }}
+                    >
+                      {/* Title */}
+                      <div className="px-2 pt-1 text-sm font-medium break-words sm:line-clamp-none line-clamp-2">
+                        {it.title || "-"}
+                      </div>
 
-                    {/* Entries (stacked lines) */}
-                    {placed.map(({ it, absStart, absEnd, lane }) => {
-                      const top = yFromAbsMin(absStart);
-                      const height = heightFromAbsRange(
-                        absStart,
-                        absEnd,
-                        it,
-                        true
-                      );
-                      const leftPct = (lane || 0) * (laneW + gutterPct);
-                      const timeStr = `${it.start_at.slice(11, 16)}${
-                        it.end_at ? ` – ${it.end_at.slice(11, 16)}` : ""
-                      }`;
-                      const color = colorForItem(it);
-                      const badgeTxt = badgeTextFor(it);
-                      const badgeStyle: React.CSSProperties = {
-                        backgroundColor: color,
-                        color: readableOn(color),
-                      };
-
-                      return (
-                        <div
-                          key={String(it.id)}
-                          className="absolute p-1"
-                          style={{
-                            top,
-                            left: `${leftPct}%`,
-                            width: `${laneW}%`,
-                            height,
-                            zIndex: 1,
-                          }}
+                      {/* Label + time */}
+                      <div className="px-2 mt-0.5 flex items-center gap-2">
+                        <span
+                          className="inline-block rounded px-2 py-0.5 text-xs font-medium"
+                          style={badgeStyle}
                         >
-                          <div
-                            className="flex h-full flex-col rounded border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900 overflow-hidden"
-                            style={{ borderLeft: `4px solid ${color}` }}
-                          >
-                            {/* Title */}
-                            <div className="px-2 pt-1 text-sm font-medium break-words sm:line-clamp-none line-clamp-2">
-                              {it.title || "-"}
-                            </div>
+                          {badgeTxt}
+                        </span>
+                        <span className="text-xs text-gray-500">{timeStr}</span>
+                      </div>
 
-                            {/* Label + time */}
-                            <div className="px-2 mt-0.5 flex items-center gap-2">
-                              <span
-                                className="inline-block rounded px-2 py-0.5 text-xs font-medium"
-                                style={badgeStyle}
-                              >
-                                {badgeTxt}
-                              </span>
-                              <span className="text-xs text-gray-500">
-                                {timeStr}
-                              </span>
-                            </div>
+                      {/* Buttons */}
+                      <div className="px-2 mt-1 flex gap-1">
+                        <button
+                          className="sm:hidden rounded border border-gray-300 px-1.5 py-0.5 text-xs hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                          onClick={() => openEdit(it)}
+                          aria-label={t("actions.edit")}
+                        >
+                          ✎
+                        </button>
+                        <button
+                          className="sm:hidden rounded border border-red-300 px-1.5 py-0.5 text-xs text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                          onClick={() => delItem(it.id)}
+                          aria-label={t("actions.delete")}
+                        >
+                          🗑
+                        </button>
 
-                            {/* Buttons */}
-                            <div className="px-2 mt-1 flex gap-1">
-                              <button
-                                className="sm:hidden rounded border border-gray-300 px-1.5 py-0.5 text-xs hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
-                                onClick={() => openEdit(it)}
-                                aria-label={t("actions.edit")}
-                              >
-                                ✎
-                              </button>
-                              <button
-                                className="sm:hidden rounded border border-red-300 px-1.5 py-0.5 text-xs text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
-                                onClick={() => delItem(it.id)}
-                                aria-label={t("actions.delete")}
-                              >
-                                🗑
-                              </button>
+                        <button
+                          className="hidden sm:inline-block rounded border border-gray-300 px-2 py-0.5 text-xs hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                          onClick={() => openEdit(it)}
+                        >
+                          {t("actions.edit")}
+                        </button>
+                        <button
+                          className="hidden sm:inline-block rounded border border-red-300 px-2 py-0.5 text-xs text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                          onClick={() => delItem(it.id)}
+                        >
+                          {t("actions.delete")}
+                        </button>
+                      </div>
 
-                              <button
-                                className="hidden sm:inline-block rounded border border-gray-300 px-2 py-0.5 text-xs hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
-                                onClick={() => openEdit(it)}
-                              >
-                                {t("actions.edit")}
-                              </button>
-                              <button
-                                className="hidden sm:inline-block rounded border border-red-300 px-2 py-0.5 text-xs text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
-                                onClick={() => delItem(it.id)}
-                              >
-                                {t("actions.delete")}
-                              </button>
-                            </div>
+                      {/* Location */}
+                      <div className="px-2 mt-1 text-xs text-gray-600 break-words">
+                        {it.location || "-"}
+                      </div>
 
-                            {/* Location */}
-                            <div className="px-2 mt-1 text-xs text-gray-600 break-words">
-                              {it.location || "-"}
-                            </div>
+                      {/* Note */}
+                      <div className="px-2 pb-2 mt-0.5 text-xs text-gray-500 break-words whitespace-pre-wrap">
+                        {it.notes || "-"}
+                      </div>
 
-                            {/* Note */}
-                            <div className="px-2 pb-2 mt-0.5 text-xs text-gray-500 break-words whitespace-pre-wrap">
-                              {it.notes || "-"}
-                            </div>
-
-                            <div className="flex-1" />
-                          </div>
-                        </div>
-                      );
-                    })}
+                      <div className="flex-1" />
+                    </div>
                   </div>
                 );
               })}
             </div>
-          </div>
-        </div>
-      )}
+          );
+        })}
+      </div>
+    </div>
+  </div>
+)}
+
 
       {loading && <div className="text-sm text-gray-500">{t("loading")}</div>}
 
