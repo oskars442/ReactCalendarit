@@ -225,6 +225,7 @@
      "labels": {
     "saved": "Saglabātās etiķetes"
   },
+  "time": "Laiks",
         "day": "Diena",
     "week": "Nedēļa",
     "title": "Darba dienasgrāmata",
@@ -264,6 +265,7 @@
 
   "todo": {
     "title": "Uzdevumi",
+    "loading": "Ielādē...",
     "subtitle": "Ātrs, minimālistisks, tastatūrai draudzīgs uzdevumu pārvaldnieks.",
     "progress": "{done}/{total} izpildīti",
     "addTask": {
@@ -417,8 +419,8 @@
     "dayColor": "Dienas krāsa",
     "custom": "Pielāgota",
     "clear": "Notīrīt",
-    "groceries": "Iepirkumi",
-    "todo": "Uzdevumi",
+    "groceries": "Iepirkumu grozs",
+    "todo": "Darāmo darbu saraksts",
     "workDiary": "Darba dienasgrāmata",
     "productPlaceholder": "Pievieno produktu…",
     "todoPlaceholder": "Raksti un spied Enter…",

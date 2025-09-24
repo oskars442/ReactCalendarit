@@ -1,4 +1,5 @@
 // src/app/[locale]/layout.tsx
+import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import "../globals.css";
 
@@ -9,39 +10,38 @@ import AuthProvider from "@/components/AuthProvider";
 export const metadata: Metadata = { title: "Calendarit" };
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
-export const fetchCache = 'force-no-store';
+export const fetchCache = "force-no-store";
 
-export default async function RootLayout({
+// Mazs helperis drošai ziņu ielādei + fallbackam
+async function loadMessages(loc: Locale) {
+  try {
+    return (await import(`@/lib/i18n/messages/${loc}.json`)).default;
+  } catch {
+    return (await import(`@/lib/i18n/messages/${defaultLocale}.json`)).default;
+  }
+}
+
+// PIEZĪME: Šis ir Server Component (te NELIEKAM <html>/<body>)
+export default async function LocaleLayout({
   children,
   params,
 }: {
-  children: React.ReactNode;
-  // In Next.js 15 App Router, params in server components can be async.
-  params: Promise<{ locale: string }>;
+  children: ReactNode;
+  // Atbalstām Next 15 “async params”, bet strādās arī ar parastu objektu
+  params: Promise<{ locale: string }> | { locale: string };
 }) {
-  const { locale: raw } = await params;
+  const resolved = await params as { locale: string };
+  const raw = resolved?.locale;
 
-  const locale: Locale = ((locales as readonly string[]).includes(raw)
-    ? raw
-    : defaultLocale) as Locale;
+  const locale = (locales as readonly string[]).includes(raw)
+    ? (raw as Locale)
+    : (defaultLocale as Locale);
 
-  // If a locale file is missing for any reason, fall back to defaultLocale.
-  let messages: Record<string, any>;
-  try {
-    messages = (await import(`@/lib/i18n/messages/${locale}.json`)).default;
-  } catch {
-    messages = (await import(`@/lib/i18n/messages/${defaultLocale}.json`)).default;
-  }
+  const messages = await loadMessages(locale);
 
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <body>
-        <I18nProvider locale={locale} messages={messages}>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
-        </I18nProvider>
-      </body>
-    </html>
+    <I18nProvider locale={locale} messages={messages}>
+      <AuthProvider>{children}</AuthProvider>
+    </I18nProvider>
   );
 }

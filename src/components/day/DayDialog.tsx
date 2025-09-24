@@ -1,11 +1,9 @@
-// src/components/day/DayDialog.tsx
 "use client";
 
 import * as React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import useSWR, { mutate } from "swr";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { DayLogSchema } from "@/lib/zodSchemas";
 import type { ISODate, DayLog, RecurringEvent, HexColor } from "@/lib/types";
 import { useLocale, useTranslations } from "next-intl";
 
@@ -82,10 +80,22 @@ export default function DayDialog({
   const [draft, setDraft] = useState<DayLog | null>(null);
   const [yearlyTitle, setYearlyTitle] = useState("");
 
+  // helper: "2025-09-24T..." -> "2025-09-24"
+  const normISO = (s: string) =>
+    /^\d{4}-\d{2}-\d{2}$/.test(s) ? (s as ISODate) : (s.slice(0, 10) as ISODate);
+
   // seed draft when dialog opens (preserve existing dayColor if present)
   useEffect(() => {
     if (open && date) {
-      setDraft(baseLog ?? { date });
+      if (baseLog) {
+        setDraft({
+          ...baseLog,
+          // TS: cast uz ISODate, jo template-literal tips
+          date: normISO(baseLog.date as unknown as string),
+        });
+      } else {
+        setDraft({ date }); // jau ISO no kalendāra/overview
+      }
       setYearlyTitle("");
     }
   }, [open, date, baseLog]);
@@ -102,30 +112,51 @@ export default function DayDialog({
     return `${weekday}, ${rest}`;
   }, [date, locale]);
 
-  // Only enable "Save Day Log" once user set/cleared the color (string or null)
-  const canSave = useMemo(() => !!draft && draft.dayColor !== undefined, [draft]);
+  // Enable "Save" only if color actually changed (string|null vs base)
+  const canSave = useMemo(() => {
+    if (!draft) return false;
+    const before = baseLog?.dayColor ?? undefined; // undefined = nav bijis
+    const after = draft.dayColor; // string | null | undefined
+    return after !== before;
+  }, [draft, baseLog]);
 
   const saveDay = useCallback(async () => {
     if (!draft) return;
 
-    const parsed = DayLogSchema.safeParse(draft);
-    if (!parsed.success) {
-      alert(tx("validationError", "Please fix the highlighted fields."));
-      return;
+    // —— vieglā validācija ——
+    const isISO = (s: string) => /^\d{4}-\d{2}-\d{2}$/.test(s);
+    const isHex = (s: string) => /^#[0-9a-fA-F]{6}$/.test(s);
+
+    const dateISO = isISO(draft.date as unknown as string)
+      ? (draft.date as ISODate)
+      : normISO(draft.date as unknown as string);
+
+    // build payload
+    const payload: any = { date: dateISO };
+    if (draft.dayColor !== undefined) {
+      if (draft.dayColor !== null && !isHex(draft.dayColor)) {
+        alert(tx("validationError", "Please fix the highlighted fields."));
+        return;
+      }
+      payload.dayColor = draft.dayColor; // string vai null => notīrīt
     }
 
-    const key = `/api/daylog?date=${draft.date}`;
+    const key = `/api/daylog?date=${dateISO}`;
+
     // optimistic cache
-    mutate(key, { dayLog: parsed.data, occurrences: [] }, false);
+    try {
+      mutate(key, { dayLog: { date: dateISO, dayColor: draft.dayColor }, occurrences: [] }, false);
+    } catch {}
 
     const res = await fetch("/api/daylog", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify(parsed.data),
+      body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
       alert(tx("saveError", "Failed to save. Try again."));
+      try { mutate(key); } catch {}
       return;
     }
 
@@ -134,15 +165,14 @@ export default function DayDialog({
       const json = await res.json();
       savedColor = json?.dayLog?.dayColor ?? null;
     } catch {
-      savedColor = parsed.data.dayColor ?? null;
+      savedColor = draft.dayColor ?? null;
     }
 
-    mutate(key);
+    try { mutate(key); } catch {}
 
-    // instant grid update
     window.dispatchEvent(
       new CustomEvent("calendarit:daylogSaved", {
-        detail: { date: draft.date, dayColor: savedColor },
+        detail: { date: dateISO, dayColor: savedColor },
       })
     );
 
@@ -156,7 +186,6 @@ export default function DayDialog({
     try {
       await createRecurringYearly(yearlyTitle.trim(), date);
       setYearlyTitle("");
-      // notify the app + refetch the day data
       window.dispatchEvent(new Event("calendarit:recurringChanged"));
       mutate(`/api/daylog?date=${date}`);
     } catch (e) {
@@ -208,7 +237,7 @@ export default function DayDialog({
             </div>
           </div>
 
-          {/* BODY (single column) */}
+          {/* BODY */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6">
             <div className="grid grid-cols-1 gap-4 sm:gap-6">
               {/* Day color */}
@@ -231,7 +260,7 @@ export default function DayDialog({
                       key={c}
                       value={c}
                       selected={dl?.dayColor === c}
-                      onSelect={(v) => setDraft((d) => ({ ...(d ?? { date: date! }), dayColor: v }))}
+                      onSelect={(v) => setDraft((d) => ({ ...(d ?? { date: (date as ISODate) }), dayColor: v }))}
                     />
                   ))}
 
@@ -242,7 +271,7 @@ export default function DayDialog({
                       value={(dl?.dayColor ?? "#0ea5e9") as HexColor}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         const v = e.currentTarget.value as HexColor;
-                        setDraft((d) => ({ ...(d ?? { date: date! }), dayColor: v }));
+                        setDraft((d) => ({ ...(d ?? { date: (date as ISODate) }), dayColor: v }));
                       }}
                       className="h-7 w-10 cursor-pointer rounded border border-black/10"
                     />
@@ -255,7 +284,7 @@ export default function DayDialog({
                       type="button"
                       className="ml-auto rounded-md border px-2 py-1 text-xs hover:bg-neutral-50 dark:hover:bg-neutral-900"
                       onClick={() =>
-                        setDraft((d) => ({ ...(d ?? { date: date! }), dayColor: null }))
+                        setDraft((d) => ({ ...(d ?? { date: (date as ISODate) }), dayColor: null }))
                       }
                     >
                       {tx("clear", "Clear")}
@@ -264,7 +293,7 @@ export default function DayDialog({
                 </div>
               </section>
 
-              {/* Actions (no global header; titles inside) */}
+              {/* Actions */}
               <section className="overflow-hidden rounded-2xl border border-neutral-200/70 dark:border-neutral-800/70 bg-white/70 dark:bg-neutral-900/70 shadow-sm p-4">
                 {date && (
                   <QuickActions
@@ -336,7 +365,7 @@ function QuickActions({
   dateISO: ISODate;
   onAnyAdd: () => void;
 }) {
-  const tx = useTx(); // localize this subcomponent too
+  const tx = useTx();
 
   const [toast, setToast] = useState<{ type: "ok" | "err"; msg: string } | null>(null);
   const showToast = (type: "ok" | "err", msg: string) => {
@@ -405,9 +434,7 @@ function QuickActions({
                 key={p}
                 type="button"
                 onClick={() => setTodoPriority(p)}
-                className={`rounded-lg border px-3 py-1 ${
-                  todoPriority === p ? "ring-2 ring-sky-400" : ""
-                }`}
+                className={`rounded-lg border px-3 py-1 ${todoPriority === p ? "ring-2 ring-sky-400" : ""}`}
               >
                 {p === "low" ? tx("low", "Low") : p === "med" ? tx("med", "Med") : tx("high", "High")}
               </button>

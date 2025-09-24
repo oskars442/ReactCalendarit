@@ -1,4 +1,3 @@
-// src/app/[locale]/(dashboard)dashboard/ClientOverview.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -217,7 +216,7 @@ export default function ClientOverview() {
 
   // Today (local)
   const todayDate = new Date();
-  const todayISO = toISO(todayDate);
+  const todayISO = toISO(todayDate) as ISODate;
   const todayNum = todayDate.getDate();
   const weekday = new Intl.DateTimeFormat(locale, { weekday: "long" }).format(todayDate);
   const dateLabel = new Intl.DateTimeFormat(locale, {
@@ -227,6 +226,34 @@ export default function ClientOverview() {
   }).format(todayDate);
 
   const [openDate, setOpenDate] = useState<ISODate | null>(null);
+
+  // 🔹 Šodienas dayColor (sinhronizēts ar DayLog/kalendāru)
+  const [todayColor, setTodayColor] = useState<string | null>(null);
+
+  // Ielasa šodienas dayLog vienu reizi
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await fetch(`/api/daylog?date=${todayISO}`, { cache: "no-store" });
+        const j = await r.json().catch(() => null);
+        const c: string | null = j?.dayLog?.dayColor ?? null;
+        setTodayColor(c);
+      } catch {
+        setTodayColor(null);
+      }
+    })();
+  }, [todayISO]);
+
+  // Klausās uz “calendarit:daylogSaved” live-update (tikai ja glābts šodienai)
+  useEffect(() => {
+    const onSaved = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { date?: string; dayColor?: string | null } | undefined;
+      if (!detail?.date || detail.date !== todayISO) return;
+      setTodayColor(detail.dayColor ?? null);
+    };
+    window.addEventListener("calendarit:daylogSaved", onSaved as EventListener);
+    return () => window.removeEventListener("calendarit:daylogSaved", onSaved as EventListener);
+  }, [todayISO]);
 
   // Fetch once for the whole month, then split
   const [all, setAll] = useState<ApiItem[]>([]);
@@ -292,28 +319,37 @@ export default function ClientOverview() {
   const quote = useMemo(() => quoteOfTheDay(locale), [locale]);
   const namedayText = useMemo(() => getNamedayText(locale), [locale]);
 
+  // Fallbacks, ja nav dayColor: izmanto tos pašus sky tonus, ko jau lietoji
+  const fallbackBorder = "#0ea5e9"; // sky-500
+  const fallbackText = "#0284c7";   // sky-600
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
-{/* Header row */}
-<div className="mb-6 flex items-center justify-between gap-4 md:grid md:grid-cols-[1fr_auto_1fr]">
-  {/* Title (pa kreisi uz desktopa, pa kreisi arī uz mobilā) */}
-  <h1 className="text-2xl font-bold md:justify-self-start">{t("title")}</h1>
+      {/* Header row */}
+      <div className="mb-6 flex items-center justify-between gap-4 md:grid md:grid-cols-[1fr_auto_1fr]">
+        {/* Title */}
+        <h1 className="text-2xl font-bold md:justify-self-start">{t("title")}</h1>
 
-  {/* Today tile — centrā uz desktopa, labajā uz mobilā */}
-  <button
-    type="button"
-    onClick={() => setOpenDate(todayISO as ISODate)}
-    aria-label="Open today's day log"
-    className="group relative flex flex-col justify-center rounded-2xl border-2 border-sky-500 bg-white shadow-sm w-32 sm:w-40 h-24 px-3 py-2 hover:bg-sky-50 focus:outline-none md:justify-self-center"
+        {/* Today tile — izmanto DayLog krāsu, ja ir */}
+     <button
+  type="button"
+  onClick={() => setOpenDate(todayISO as ISODate)}
+  aria-label="Open today's day log"
+  className="group relative flex flex-col justify-center rounded-2xl border-2 border-sky-500 bg-white shadow-sm w-32 sm:w-40 h-24 px-3 py-2 hover:bg-sky-50 focus:outline-none md:justify-self-center"
+>
+  <span
+    className="text-4xl sm:text-5xl font-semibold leading-none"
+    style={{ color: todayColor ?? "#0284c7" }}  // 🔹 tikai cipars maina krāsu
   >
-    <span className="text-sky-600 text-4xl sm:text-5xl font-semibold leading-none">{todayNum}</span>
-    <span className="text-sm sm:text-base text-neutral-600 capitalize">{weekday}</span>
-    <span className="text-xs sm:text-sm text-neutral-600">{dateLabel}</span>
-  </button>
+    {todayNum}
+  </span>
+  <span className="text-sm sm:text-base text-neutral-600 capitalize">{weekday}</span>
+  <span className="text-xs sm:text-sm text-neutral-600">{dateLabel}</span>
+</button>
 
-  {/* Spacer tikai desktopam, lai gridam būtu 3. kolonna */}
-  <div className="hidden md:block" />
-</div>
+        {/* Spacer tikai desktopam */}
+        <div className="hidden md:block" />
+      </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
         {/* Today’s events */}

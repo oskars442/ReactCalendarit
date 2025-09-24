@@ -12,7 +12,7 @@ type Task = {
   note?: string;
   done: boolean;
   priority: Priority;
-  due?: string;           // YYYY-MM-DD (date-only string in LOCAL time)
+  due?: string; // YYYY-MM-DD (date-only string in LOCAL time)
   createdAt: number;
   updatedAt: number;
 };
@@ -23,7 +23,8 @@ const classNames = (...c: (string | false | null | undefined)[]) =>
   c.filter(Boolean).join(" ");
 
 const LS_KEY = "todo:v1";
-const saveLS = (tasks: Task[]) => localStorage.setItem(LS_KEY, JSON.stringify(tasks));
+const saveLS = (tasks: Task[]) =>
+  localStorage.setItem(LS_KEY, JSON.stringify(tasks));
 const loadLS = (): Task[] => {
   try {
     const raw = localStorage.getItem(LS_KEY);
@@ -90,7 +91,9 @@ export default function TodoPage() {
 
   // search / filters
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<"all" | "today" | "upcoming" | "done">("all");
+  const [filter, setFilter] = useState<"all" | "today" | "upcoming" | "done">(
+    "all"
+  );
   const [showCompleted, setShowCompleted] = useState(true);
 
   // quick add
@@ -130,7 +133,8 @@ export default function TodoPage() {
       void refetch();
     };
     window.addEventListener("calendarit:todosChanged", onChanged);
-    return () => window.removeEventListener("calendarit:todosChanged", onChanged);
+    return () =>
+      window.removeEventListener("calendarit:todosChanged", onChanged);
   }, [refetch]);
 
   /* Persist LS backup on change (non-blocking) */
@@ -147,7 +151,8 @@ export default function TodoPage() {
         e.preventDefault();
         (document.getElementById("todo-search") as HTMLInputElement)?.focus();
       }
-      if (e.key === "a" && !e.metaKey && !e.ctrlKey) setShowCompleted((s) => !s);
+      if (e.key === "a" && !e.metaKey && !e.ctrlKey)
+        setShowCompleted((s) => !s);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -170,7 +175,7 @@ export default function TodoPage() {
       arr = arr.filter(
         (t) =>
           t.title.toLowerCase().includes(q) ||
-          (t.note || "").toLowerCase().includes(q),
+          (t.note || "").toLowerCase().includes(q)
       );
     }
     if (filter === "today") arr = arr.filter((t) => isToday(t.due));
@@ -181,14 +186,17 @@ export default function TodoPage() {
     // sort: not done first; then due asc; then newest updated
     arr = [...arr].sort((a, b) => {
       if (a.done !== b.done) return a.done ? 1 : -1;
-      if ((a.due || "") !== (b.due || "")) return (a.due || "").localeCompare(b.due || "");
+      if ((a.due || "") !== (b.due || ""))
+        return (a.due || "").localeCompare(b.due || "");
       return b.updatedAt - a.updatedAt;
     });
     return arr;
   }, [tasks, query, filter, showCompleted]);
 
   const completedCount = tasks.filter((t) => t.done).length;
-  const progress = tasks.length ? Math.round((completedCount / tasks.length) * 100) : 0;
+  const progress = tasks.length
+    ? Math.round((completedCount / tasks.length) * 100)
+    : 0;
 
   /* ---------- Actions (optimistic) ---------- */
   async function addTask() {
@@ -233,8 +241,8 @@ export default function TodoPage() {
   async function toggleDone(id: string) {
     setTasks((prev) =>
       prev.map((t) =>
-        t.id === id ? { ...t, done: !t.done, updatedAt: Date.now() } : t,
-      ),
+        t.id === id ? { ...t, done: !t.done, updatedAt: Date.now() } : t
+      )
     );
 
     const now = tasks.find((t) => t.id === id);
@@ -249,8 +257,8 @@ export default function TodoPage() {
       // revert on error
       setTasks((prev) =>
         prev.map((t) =>
-          t.id === id ? { ...t, done: !t.done, updatedAt: Date.now() } : t,
-        ),
+          t.id === id ? { ...t, done: !t.done, updatedAt: Date.now() } : t
+        )
       );
     }
   }
@@ -268,7 +276,9 @@ export default function TodoPage() {
   async function updateTask(patch: Task) {
     const backup = tasks;
     setTasks((prev) =>
-      prev.map((t) => (t.id === patch.id ? { ...patch, updatedAt: Date.now() } : t)),
+      prev.map((t) =>
+        t.id === patch.id ? { ...patch, updatedAt: Date.now() } : t
+      )
     );
     try {
       await api(`/api/todo/${patch.id}`, {
@@ -291,7 +301,9 @@ export default function TodoPage() {
     const backup = tasks;
     setTasks((prev) => prev.filter((t) => !t.done));
     try {
-      await Promise.all(doneIds.map((id) => api(`/api/todo/${id}`, { method: "DELETE" })));
+      await Promise.all(
+        doneIds.map((id) => api(`/api/todo/${id}`, { method: "DELETE" }))
+      );
     } catch {
       setTasks(backup);
     }
@@ -319,16 +331,19 @@ export default function TodoPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-6 py-8">
       {/* Header / Progress */}
       <header className="mb-6 flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t("title")}</h1>
-          <p className="text-sm text-muted-foreground opacity-80">{t("subtitle")}</p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+            {t("title")}
+          </h1>
         </div>
         <div className="min-w-[180px]">
           <div className="mb-1 flex items-center justify-between text-xs opacity-80">
-            <span>{t("progress", { done: completedCount, total: tasks.length })}</span>
+            <span>
+              {t("progress", { done: completedCount, total: tasks.length })}
+            </span>
             <span>{progress}%</span>
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-800">
@@ -342,9 +357,11 @@ export default function TodoPage() {
 
       {/* Quick Add */}
       <section className="mb-6 rounded-2xl border border-neutral-200/60 bg-white/60 p-4 shadow-sm backdrop-blur dark:border-neutral-800/80 dark:bg-neutral-900/50 md:p-5">
-        <div className="flex flex-col gap-3 md:flex-row md:items-end">
-          <div className="flex-1">
-            <label className="text-xs font-medium opacity-80">{t("addTask.label")}</label>
+        <div className="flex flex-col gap-3 md:flex-row md:flex-wrap lg:flex-nowrap md:items-end lg:gap-4">
+          <div className="flex-1 min-w-[220px] lg:min-w-[280px]">
+            <label className="text-xs font-medium opacity-80">
+              {t("addTask.label")}
+            </label>
             <input
               ref={inputRef}
               value={title}
@@ -357,8 +374,10 @@ export default function TodoPage() {
             />
           </div>
 
-          <div className="w-full md:w-44">
-            <label className="text-xs font-medium opacity-80">{t("priority.label")}</label>
+          <div className="w-full md:w-44 lg:w-48 shrink-0">
+            <label className="text-xs font-medium opacity-80">
+              {t("priority.label")}
+            </label>
             <div className="mt-1 grid grid-cols-3 gap-2">
               {(["low", "med", "high"] as Priority[]).map((p) => (
                 <button
@@ -367,8 +386,9 @@ export default function TodoPage() {
                   className={classNames(
                     "rounded-lg border px-2.5 py-2 text-sm capitalize transition",
                     priority === p
-                      ? "border-transparent ring-2 ring-cyan-400/40 " + priorityTheme(p)
-                      : "border-neutral-200/70 hover:bg-neutral-50/50 dark:border-neutral-800 dark:hover:bg-neutral-800/40",
+                      ? "border-transparent ring-2 ring-cyan-400/40 " +
+                          priorityTheme(p)
+                      : "border-neutral-200/70 hover:bg-neutral-50/50 dark:border-neutral-800 dark:hover:bg-neutral-800/40"
                   )}
                 >
                   {t(`priority.${p}`)}
@@ -377,8 +397,10 @@ export default function TodoPage() {
             </div>
           </div>
 
-          <div className="w-full md:w-44">
-            <label className="text-xs font-medium opacity-80">{t("due.label")}</label>
+          <div className="w-full md:w-44 lg:w-48 shrink-0">
+            <label className="text-xs font-medium opacity-80">
+              {t("due.label")}
+            </label>
             <input
               type="date"
               value={due || ""}
@@ -387,8 +409,10 @@ export default function TodoPage() {
             />
           </div>
 
-          <div className="w-full md:w-72">
-            <label className="text-xs font-medium opacity-80">{t("notes.label")}</label>
+          <div className="w-full md:flex-1 min-w-[240px] lg:min-w-[320px]">
+            <label className="text-xs font-medium opacity-80">
+              {t("notes.label")}
+            </label>
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
@@ -403,8 +427,7 @@ export default function TodoPage() {
 
           <button
             onClick={addTask}
-            className="h-[42px] rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 font-medium text-white transition hover:brightness-110 active:scale-[.99] md:h-[46px]"
-            aria-label={t("addTask.buttonAria")}
+            className="h-[42px] w-full md:w-auto md:ml-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 font-medium text-white transition hover:brightness-110 active:scale-[.99] md:h-[46px]"
           >
             {t("addTask.button")}
           </button>
@@ -412,8 +435,8 @@ export default function TodoPage() {
       </section>
 
       {/* Toolbar */}
-<section className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-  <div className="flex flex-wrap items-center gap-2">
+      <section className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-wrap items-center gap-2">
           {(["all", "today", "upcoming", "done"] as const).map((f) => (
             <button
               key={f}
@@ -422,7 +445,7 @@ export default function TodoPage() {
                 "rounded-full border px-3.5 py-1.5 text-sm transition",
                 filter === f
                   ? "border-transparent bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-                  : "border-neutral-200 hover:bg-neutral-100/60 dark:border-neutral-800 dark:hover:bg-neutral-800/40",
+                  : "border-neutral-200 hover:bg-neutral-100/60 dark:border-neutral-800 dark:hover:bg-neutral-800/40"
               )}
             >
               {t(`filters.${f}`)}
@@ -448,7 +471,7 @@ export default function TodoPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t("search.placeholder")}
-               className="w-full rounded-xl border border-neutral-200/60 bg-white/70 pl-10 pr-3.5 py-2.5 outline-none ring-cyan-400/40 focus:ring-2 dark:border-neutral-800/80 dark:bg-neutral-900"
+              className="w-full rounded-xl border border-neutral-200/60 bg-white/70 pl-10 pr-3.5 py-2.5 outline-none ring-cyan-400/40 focus:ring-2 dark:border-neutral-800/80 dark:bg-neutral-900"
             />
             <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500">
               🔎
@@ -471,7 +494,7 @@ export default function TodoPage() {
             key={ti.id}
             className={classNames(
               "group relative rounded-2xl border border-neutral-200/60 bg-white/70 p-4 backdrop-blur transition hover:shadow-md dark:border-neutral-800/80 dark:bg-neutral-900/60",
-              ti.done && "opacity-70",
+              ti.done && "opacity-70"
             )}
           >
             <div className="flex items-start gap-3">
@@ -483,11 +506,11 @@ export default function TodoPage() {
                 aria-label={t("aria.toggleComplete")}
               />
               <div className="min-w-0 flex-1">
-                 <div className="flex flex-wrap items-center gap-2 min-w-0">
+                <div className="flex flex-wrap items-center gap-2 min-w-0">
                   <h3
                     className={classNames(
                       "break-words font-semibold leading-6",
-                      ti.done && "line-through",
+                      ti.done && "line-through"
                     )}
                   >
                     {ti.title}
@@ -495,7 +518,7 @@ export default function TodoPage() {
                   <span
                     className={classNames(
                       "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ring-1",
-                      priorityTheme(ti.priority),
+                      priorityTheme(ti.priority)
                     )}
                   >
                     {t(`priority.${ti.priority}`)}
@@ -508,7 +531,7 @@ export default function TodoPage() {
                           ? "bg-sky-500/10 text-sky-600 ring-sky-400/30 dark:text-sky-300"
                           : isUpcoming(ti.due)
                           ? "bg-violet-500/10 text-violet-600 ring-violet-400/30 dark:text-violet-300"
-                          : "bg-neutral-500/10 text-neutral-600 ring-neutral-300/40 dark:text-neutral-300",
+                          : "bg-neutral-500/10 text-neutral-600 ring-neutral-300/40 dark:text-neutral-300"
                       )}
                       title={ti.due}
                     >
@@ -604,27 +627,33 @@ function EditModal({
 
         <div className="grid gap-3">
           <div>
-            <label className="text-xs font-medium opacity-80">{t("fields.title")}</label>
+            <label className="text-xs font-medium opacity-80">
+              {t("fields.title")}
+            </label>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-neutral-200/60 bg-white/70 px-3.5 py-2.5 outline-none ring-cyan-400/40 focus:ring-2 dark:border-neutral-800/80 dark:bg-neutral-900"
+              className="mt-1 w-full min-w-0 rounded-xl border border-neutral-200/60 bg-white/70 px-3.5 py-2.5 outline-none ring-cyan-400/40 focus:ring-2 dark:border-neutral-800/80 dark:bg-neutral-900"
             />
           </div>
 
           <div>
-            <label className="text-xs font-medium opacity-80">{t("fields.notes")}</label>
+            <label className="text-xs font-medium opacity-80">
+              {t("fields.notes")}
+            </label>
             <textarea
               rows={3}
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-neutral-200/60 bg-white/70 px-3.5 py-2.5 outline-none ring-cyan-400/40 focus:ring-2 dark:border-neutral-800/80 dark:bg-neutral-900"
+              className="mt-1 w-full min-w-0 resize-y rounded-xl border border-neutral-200/60 bg-white/70 px-3.5 py-2.5 outline-none ring-cyan-400/40 focus:ring-2 dark:border-neutral-800/80 dark:bg-neutral-900"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
             <div>
-              <label className="text-xs font-medium opacity-80">{t("fields.priority")}</label>
+              <label className="text-xs font-medium opacity-80">
+                {t("fields.priority")}
+              </label>
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as Priority)}
@@ -636,12 +665,14 @@ function EditModal({
               </select>
             </div>
             <div className="col-span-1 md:col-span-2">
-              <label className="text-xs font-medium opacity-80">{tCommon("due.label")}</label>
+              <label className="text-xs font-medium opacity-80">
+                {tCommon("due.label")}
+              </label>
               <input
                 type="date"
                 value={due || ""}
                 onChange={(e) => setDue(e.target.value || undefined)}
-                className="mt-1 w-full rounded-xl border border-neutral-200/60 bg-white/70 px-3.5 py-2.5 outline-none ring-cyan-400/40 focus:ring-2 dark:border-neutral-800/80 dark:bg-neutral-900"
+                className="mt-1 w-full min-w-0 rounded-xl border border-neutral-200/60 bg-white/70 px-3.5 py-2.5 outline-none ring-cyan-400/40 focus:ring-2 dark:border-neutral-800/80 dark:bg-neutral-900"
               />
             </div>
           </div>

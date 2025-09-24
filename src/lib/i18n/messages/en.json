@@ -225,6 +225,7 @@
      "labels": {
     "saved": "Saved labels"
   },
+  "time": "Time",
     "day": "Day",
     "week": "Week",
   "title": "Work Diary",
@@ -264,6 +265,7 @@
 
   "todo": {
     "title": "To-Do",
+    "loading": "Loading...",
     "subtitle": "Fast, minimalist, keyboard-friendly task manager.",
     "progress": "{done}/{total} done",
     "addTask": {
