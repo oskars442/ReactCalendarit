@@ -1,16 +1,14 @@
 // src/app/api/work/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import type { Prisma } from "@prisma/client"; // TS types only, no enums imported
+import type { Prisma } from "@prisma/client";
+import { requireUserId } from "@/lib/auth-helpers";
 
-// ---- auth placeholder (swap with NextAuth etc.)
-async function getUserId() {
-  return 1; // dev only
-}
-
-// ---- datetime helpers
+/* ---------- time helpers ---------- */
 function parseLocalSql(s: string): Date {
   // "YYYY-MM-DD HH:MM:SS" -> Date
+  // pieņemam, ka nāk lokālā laikā (bez TZ) un glabājas ar TZ kolonnā (Postgres timestamptz).
+  // Ja vajag stingru TZ konversiju, var ieviest papildus loģiku.
   return new Date(s.replace(" ", "T"));
 }
 function toSqlLocal(dt: Date | null | undefined): string | null {
@@ -20,23 +18,20 @@ function toSqlLocal(dt: Date | null | undefined): string | null {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
-// ---- runtime coercion for type/status (works whether those fields are enums or strings)
+/* ---------- coercion helpers ---------- */
 const TYPE_ALLOWED = ["task", "job", "meeting", "other"] as const;
 const STATUS_ALLOWED = ["planned", "in_progress", "done", "cancelled"] as const;
 
 function coerceType(v: unknown): Prisma.WorkDiaryEntryCreateInput["type"] {
-  const val =
-    typeof v === "string" && TYPE_ALLOWED.includes(v as any) ? v : "task";
+  const val = (typeof v === "string" && TYPE_ALLOWED.includes(v as any)) ? v : "task";
   return val as unknown as Prisma.WorkDiaryEntryCreateInput["type"];
 }
-
 function coerceStatus(v: unknown): Prisma.WorkDiaryEntryCreateInput["status"] {
-  const val =
-    typeof v === "string" && STATUS_ALLOWED.includes(v as any) ? v : "planned";
+  const val = (typeof v === "string" && STATUS_ALLOWED.includes(v as any)) ? v : "planned";
   return val as unknown as Prisma.WorkDiaryEntryCreateInput["status"];
 }
 
-// ---- DB row -> UI (snake_case) mapper
+/* ---------- DB -> API mapper ---------- */
 function mapOut(row: any) {
   return {
     id: row.id,
@@ -53,42 +48,77 @@ function mapOut(row: any) {
   };
 }
 
-// ====== GET
+/* ===================== GET /api/work ===================== */
 export async function GET(req: Request) {
-  const userId = await getUserId();
-  const { searchParams } = new URL(req.url);
-  const from = searchParams.get("from");
-  const to = searchParams.get("to");
-  if (!from || !to) return NextResponse.json([]);
+  try {
+    const userId = await requireUserId();
+    const { searchParams } = new URL(req.url);
+    const from = searchParams.get("from");
+    const to = searchParams.get("to");
+    if (!from || !to) {
+      return NextResponse.json(
+        { error: "Missing 'from' or 'to' query params (YYYY-MM-DD HH:MM:SS)" },
+        { status: 400 }
+      );
+    }
 
-  const rows = await prisma.workDiaryEntry.findMany({
-    where: {
-      userId,
-      startAt: { gte: parseLocalSql(from), lte: parseLocalSql(to) },
-    },
-    orderBy: { startAt: "asc" },
-  });
+    const fromDt = parseLocalSql(from);
+    const toDt = parseLocalSql(to);
+    if (isNaN(+fromDt) || isNaN(+toDt)) {
+      return NextResponse.json(
+        { error: "Bad date format; expected 'YYYY-MM-DD HH:MM:SS'" },
+        { status: 400 }
+      );
+    }
 
-  return NextResponse.json(rows.map(mapOut));
+    const rows = await prisma.workDiaryEntry.findMany({
+      where: {
+        userId,
+        startAt: { gte: fromDt, lte: toDt },
+      },
+      orderBy: { startAt: "asc" },
+    });
+
+    return NextResponse.json(rows.map(mapOut));
+  } catch (e: any) {
+    const status = e?.status === 401 ? 401 : 500;
+    return NextResponse.json({ error: "Failed to load entries." }, { status });
+  }
 }
 
-// ====== POST
+/* ===================== POST /api/work ===================== */
 export async function POST(req: Request) {
-  const userId = await getUserId();
-  const b = await req.json();
-
   try {
+    const userId = await requireUserId();
+    const b = await req.json();
+
+    // minimāla validācija
+    if (!b?.start_at || typeof b.start_at !== "string") {
+      return NextResponse.json({ error: "start_at is required" }, { status: 400 });
+    }
+    const startAt = parseLocalSql(b.start_at);
+    if (isNaN(+startAt)) {
+      return NextResponse.json({ error: "Invalid start_at" }, { status: 400 });
+    }
+    const endAt = b.end_at ? parseLocalSql(b.end_at) : null;
+    if (b.end_at && isNaN(+endAt!)) {
+      return NextResponse.json({ error: "Invalid end_at" }, { status: 400 });
+    }
+    if (endAt && endAt <= startAt) {
+      return NextResponse.json({ error: "End time must be after start time." }, { status: 400 });
+    }
+
     const created = await prisma.workDiaryEntry.create({
       data: {
         userId,
         type: coerceType(b.type),
-        label: b.label ?? null,              // used when type="other"
+        label: b.label ?? null,             // used when type="other"
         typeColor: b.type_color ?? null,
         title: b.title ?? null,
         notes: b.notes ?? null,
         location: b.location ?? null,
-        startAt: parseLocalSql(b.start_at),
-        ...(b.end_at ? { endAt: parseLocalSql(b.end_at) } : {}), // don't pass null
+        startAt,
+        ...(endAt ? { endAt } : {}),
         allDay: !!b.all_day,
         status: coerceStatus(b.status),
       },
@@ -96,58 +126,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json(mapOut(created), { status: 201 });
   } catch (e: any) {
-    const code = e?.meta?.code || e?.code || e?.cause?.code;
-    if (code === "23514") {
-      // check constraint: endAt > startAt
-      return NextResponse.json({ error: "End time must be after start time." }, { status: 400 });
-    }
     console.error(e);
-    return NextResponse.json({ error: "Failed to create." }, { status: 500 });
+    const status = e?.status === 401 ? 401 : 500;
+    return NextResponse.json({ error: "Failed to create." }, { status });
   }
-}
-
-// ====== PUT
-export async function PUT(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const id = Number(searchParams.get("id"));
-  if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
-
-  const b = await req.json();
-
-  try {
-    const updated = await prisma.workDiaryEntry.update({
-      where: { id },
-      data: {
-        type: coerceType(b.type),
-        label: b.label ?? null,
-        typeColor: b.type_color ?? null,
-        title: b.title ?? null,
-        notes: b.notes ?? null,
-        location: b.location ?? null,
-        startAt: parseLocalSql(b.start_at),
-        ...(b.end_at ? { endAt: parseLocalSql(b.end_at) } : {}),
-        allDay: !!b.all_day,
-        status: coerceStatus(b.status),
-      },
-    });
-
-    return NextResponse.json(mapOut(updated));
-  } catch (e: any) {
-    const code = e?.meta?.code || e?.code || e?.cause?.code;
-    if (code === "23514") {
-      return NextResponse.json({ error: "End time must be after start time." }, { status: 400 });
-    }
-    console.error(e);
-    return NextResponse.json({ error: "Failed to update." }, { status: 500 });
-  }
-}
-
-// ====== DELETE
-export async function DELETE(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const id = Number(searchParams.get("id"));
-  if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
-
-  await prisma.workDiaryEntry.delete({ where: { id } });
-  return NextResponse.json({ ok: true });
 }

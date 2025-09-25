@@ -183,6 +183,38 @@ export default function Diary() {
   useEffect(() => {
     loadLabels();
   }, []);
+    // —— helpers dropdownam ——
+  function pickLabel(l: SavedLabel) {
+    setForm(f =>
+      f ? { ...f, typeSelect: "other", customType: l.name, typeColor: l.colorHex }
+        : {
+            id: null, typeSelect: "other", customType: l.name, typeColor: l.colorHex,
+            title: "", startTime: "09:00", endTime: "10:00", location: "", notes: ""
+          }
+    );
+  }
+
+  async function deleteLabel(id: number) {
+    const lbl = labels.find(x => x.id === id);
+    if (!lbl) return;
+    if (!confirm(t("labels.confirmDelete", { default: "Vai tiešām dzēst etiķeti?" }))) return;
+
+    try {
+      const res = await fetch(`/api/work/labels/${id}`, { method: "DELETE", credentials: "include" });
+      if (!res.ok) throw new Error(await res.text());
+      setLabels(prev => prev.filter(l => l.id !== id));
+
+      // ja forma izmantoja tikko izdzēsto etiķeti, atiestati
+      setForm(f => {
+        if (!f || f.typeSelect !== "other" ||
+            f.customType.trim().toLowerCase() !== lbl.name.trim().toLowerCase()) return f;
+        return { ...f, typeSelect: "task", customType: "", typeColor: "#6c757d" };
+      });
+    } catch (e) {
+      console.error(e);
+      alert(t("errors.deleteLabel", { default: "Neizdevās dzēst etiķeti." }));
+    }
+  }
 
   // auto-switch to Day on phones
   useEffect(() => {
@@ -550,6 +582,100 @@ export default function Diary() {
       ? it.label || t("types.other")
       : t(`types.${it.type}` as const);
 
+        // ── Pielāgotais dropdowns ar dzēšanas krustiņiem ──
+  function TypeSelector({
+    value,
+    onPickBuiltin,
+    onPickLabel,
+    onDeleteLabel,
+  }: {
+    value: TypeSelectValue;
+    onPickBuiltin: (t: DiaryType) => void;
+    onPickLabel: (l: SavedLabel) => void;
+    onDeleteLabel: (id: number) => void;
+  }) {
+    const [open, setOpen] = useState(false);
+
+    const textFor = (v: TypeSelectValue) => {
+      if (v === "task") return t("types.task");
+      if (v === "job") return t("types.job");
+      if (v === "meeting") return t("types.meeting");
+      if (typeof v === "string" && v.startsWith("label:")) {
+        const id = Number(v.slice(6));
+        const lbl = labels.find(l => l.id === id);
+        if (lbl) return `${t("labels.saved", { default: "Etiķete" })}: ${lbl.name}`;
+      }
+      return t("types.otherMore");
+    };
+
+    return (
+      <div className="relative">
+        <button
+          type="button"
+          className="w-full rounded border border-gray-300 px-3 py-2 text-sm text-left dark:border-gray-700 dark:bg-gray-800"
+          onClick={() => setOpen(o => !o)}
+        >
+          {textFor(value)}
+        </button>
+
+        {open && (
+          <div
+            className="absolute z-[1000] mt-1 w-full rounded border border-gray-200 bg-white p-1 shadow-lg dark:border-gray-800 dark:bg-gray-900"
+            role="menu"
+          >
+            {/* Built-ins */}
+            {(["task","job","meeting"] as DiaryType[]).map(bt => (
+              <button
+                key={bt}
+                className="block w-full rounded px-2 py-1.5 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+                onClick={() => { onPickBuiltin(bt); setOpen(false); }}
+                role="menuitem"
+              >
+                {t(`types.${bt}` as any)}
+              </button>
+            ))}
+
+            {/* Separator + heading */}
+            <div className="my-1 border-t border-gray-200 dark:border-gray-800" />
+            <div className="px-2 pb-1 text-xs font-semibold">{t("labels.saved", { default: "Saglabātās etiķetes" })}</div>
+
+            {/* Saved labels with delete icon */}
+            {labels.length === 0 && (
+              <div className="px-2 py-1 text-xs text-gray-500">{t("labels.none", { default: "Nav saglabātu etiķešu" })}</div>
+            )}
+            {labels.map(l => (
+              <div key={l.id} className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
+                <button
+                  className="min-w-0 flex-1 text-left text-sm truncate"
+                  onClick={() => { onPickLabel(l); setOpen(false); }}
+                  title={l.name}
+                >
+                  {l.name}
+                </button>
+                <button
+                  className="rounded px-1 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  onClick={() => onDeleteLabel(l.id)}
+                  aria-label={t("labels.delete", { default: "Dzēst etiķeti" })}
+                  title={t("labels.delete", { default: "Dzēst etiķeti" })}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+
+            {/* “Cits…” */}
+            <div className="my-1 border-t border-gray-200 dark:border-gray-800" />
+            <button
+              className="block w-full rounded px-2 py-1.5 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+              onClick={() => { onPickBuiltin("other"); setOpen(false); }}
+            >
+              {t("types.otherMore")}
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
   /* =========================
      Week helpers
      ========================= */
@@ -1018,34 +1144,30 @@ export default function Diary() {
                     <label className="mb-1 block text-sm font-medium">
                       {t("fields.type")}
                     </label>
-                    <select
-                      className="w-full rounded border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
-                      value={selectedTypeValue}
-                      onChange={(e) => onTypeSelect(e.target.value)}
-                    >
-                      {/* Built-ins */}
-                      <option value="task">{t("types.task")}</option>
-                      <option value="job">{t("types.job")}</option>
-                      <option value="meeting">{t("types.meeting")}</option>
-
-                      {/* Saved labels before Other… */}
-                      {labels.length > 0 && (
-                        <optgroup
-                          label={t("labels.saved", { default: "Labels" })}
-                        >
-                          {labels.map((l) => (
-                            <option
-                              key={l.id}
-                              value={asTypeSelectValueFromLabelId(l.id)}
-                            >
-                              {l.name}
-                            </option>
-                          ))}
-                        </optgroup>
-                      )}
-
-                      <option value="other">{t("types.otherMore")}</option>
-                    </select>
+                    <TypeSelector
+  value={selectedTypeValue}
+  onPickBuiltin={(bt) => {
+    // tas pats, ko dari onTypeSelect pie "builtin"
+    if (bt === "other") {
+      setForm(f => f ? { ...f, typeSelect: "other", customType: "", typeColor: "#6c757d" } : f);
+    } else {
+      setForm(f => f ? {
+        ...f,
+        typeSelect: bt,
+        customType: "",
+        typeColor: DEFAULT_COLORS[bt as Exclude<DiaryType,"other">] || "#6c757d",
+      } : f);
+    }
+  }}
+  onPickLabel={(l) => {
+    // izvēlas saglabāto etiķeti
+    pickLabel(l);
+  }}
+  onDeleteLabel={(id) => {
+    // dzēš ar confirm (funkcija jau apstiprina iekšā)
+    deleteLabel(id);
+  }}
+/>
                   </div>
 
                   {form.typeSelect === "other" && (

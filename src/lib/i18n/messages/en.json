@@ -223,7 +223,8 @@
 
   "diary": {
      "labels": {
-    "saved": "Saved labels"
+    "saved": "Saved labels",
+    "none": "No saved labels"
   },
   "time": "Time",
     "day": "Day",

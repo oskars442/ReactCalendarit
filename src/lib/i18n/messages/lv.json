@@ -223,7 +223,9 @@
 
   "diary": {
      "labels": {
-    "saved": "Saglabātās etiķetes"
+    "saved": "Saglabātās etiķetes",
+    "none": "Nav saglabātu etiķešu"
+
   },
   "time": "Laiks",
         "day": "Diena",

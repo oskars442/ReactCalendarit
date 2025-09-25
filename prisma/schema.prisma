@@ -9,11 +9,7 @@ datasource db {
   directUrl = env("SHADOW_DATABASE_URL")
 }
 
-/**
- * ───────────────────────
- * Enums
- * ───────────────────────
- */
+
 enum Recurrence {
   MONTHLY
   YEARLY
@@ -39,11 +35,7 @@ enum TodoPriority {
   high
 }
 
-/**
- * ───────────────────────
- * Models
- * ───────────────────────
- */
+
 
 model User {
   id             Int       @id @default(autoincrement())
@@ -55,17 +47,16 @@ model User {
   gender         String?
   country        String?
   role           String    @default("user")
-  preferredColor String?   @db.Char(7) // character(7)
+  preferredColor String?   @db.Char(7) 
 
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @default(now()) @updatedAt
 
-  // Relations
   diaryEntries WorkDiaryEntry[]
-  groceries    GroceryItem[] // Grocery items owned by user
-  todoItems    TodoItem[] //  back-relation for TodoItem
+  groceries    GroceryItem[] 
+  todoItems    TodoItem[] 
 
-  labels WorkDiaryLabel[] // back relation
+  labels WorkDiaryLabel[] 
 
   @@map("users")
 }
@@ -106,7 +97,7 @@ model WorkDiaryLabel {
   user   User @relation(fields: [userId], references: [id])
 
   name     String
-  colorHex String  @db.Char(7) // hex color, e.g. "#ffc107"
+  colorHex String  @db.Char(7) 
   archived Boolean @default(false)
 
   createdAt DateTime @default(now()) @db.Timestamptz(6)
@@ -140,7 +131,7 @@ model TodoItem {
   note     String?
   done     Boolean      @default(false)
   priority TodoPriority @default(med)
-  due      DateTime? // date-only semantics are fine with DateTime
+  due      DateTime? 
 
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
@@ -165,14 +156,14 @@ model RecurringEvent {
   id         Int        @id @default(autoincrement())
   userId     Int?
   title      String
-  baseDate   DateTime   @db.Date // the seed date (e.g., 2025-09-07)
+  baseDate   DateTime   @db.Date
   recurrence Recurrence
   notes      String?
 
   // Optional “skips” and “overrides”.
   // Postgres supports array-of-date and JSON nicely:
   skips     DateTime[] @db.Date
-  overrides Json? // array of { date: 'YYYY-MM-DD', title?: string, notes?: string }
+  overrides Json?
 
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @db.Timestamptz(6)

@@ -14,17 +14,29 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const userId = await getUserId();
-  const b = await req.json();
+  const b = await req.json().catch(() => ({} as any));
+
   const name = String(b?.name ?? "").trim();
   let colorHex = String(b?.colorHex ?? "").trim();
-  if (!name) return NextResponse.json({ error: "Missing label name" }, { status: 400 });
+
+  if (!name) {
+    return NextResponse.json({ error: "Missing label name" }, { status: 400 });
+  }
   if (!/^#([0-9a-f]{6})$/i.test(colorHex)) colorHex = "#6c757d";
 
-  const saved = await prisma.workDiaryLabel.upsert({
-    where: { uniq_diarylabel_user_name: { userId, name } },
-    create: { userId, name, colorHex },
-    update: { colorHex, archived: false },
+  // Unikāls vārds per user: ja eksistē arhivēta ar tādu pašu vārdu — at-arhivē
+  const existing = await prisma.workDiaryLabel.findFirst({
+    where: { userId, name },
   });
 
-  return NextResponse.json(saved, { status: 201 });
+  const saved = existing
+    ? await prisma.workDiaryLabel.update({
+        where: { id: existing.id },
+        data: { colorHex, archived: false },
+      })
+    : await prisma.workDiaryLabel.create({
+        data: { userId, name, colorHex },
+      });
+
+  return NextResponse.json(saved, { status: existing ? 200 : 201 });
 }
