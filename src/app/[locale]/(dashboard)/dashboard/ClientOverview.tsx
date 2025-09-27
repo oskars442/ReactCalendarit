@@ -10,9 +10,8 @@ import { quoteOfTheDay } from "@/features/overview/quotes";
 import DayDialog from "@/components/day/DayDialog";
 import type { ISODate } from "@/lib/types";
 import lvNamedays from "@/features/overview/namedays/lv_namedays.json";
-
-// shared icon map for kinds coming from /api/overview
 import { kindIcon } from "@/lib/eventIcons";
+
 type UiKind = keyof typeof kindIcon;
 
 type ApiItem = {
@@ -193,19 +192,11 @@ function Row({ item }: { item: OverviewItem }) {
 
 /* ------------------------------ Date utils -------------------------------- */
 const toISO = (d: Date) => d.toLocaleDateString("sv-SE"); // YYYY-MM-DD (local)
-const startOfWeekMon = (d: Date) => {
-  const tmp = new Date(d);
-  const dow = (tmp.getDay() + 6) % 7; // Mon=0..Sun=6
-  tmp.setDate(tmp.getDate() - dow);
-  tmp.setHours(0, 0, 0, 0);
-  return tmp;
-};
-const endOfWeekMon = (d: Date) => {
-  const s = startOfWeekMon(d);
-  const e = new Date(s);
-  e.setDate(s.getDate() + 6);
-  e.setHours(23, 59, 59, 999);
-  return e;
+const addDays = (d: Date, n: number) => {
+  const x = new Date(d);
+  x.setDate(x.getDate() + n);
+  x.setHours(0, 0, 0, 0);
+  return x;
 };
 
 /* --------------------------- Main client component ------------------------- */
@@ -255,15 +246,13 @@ export default function ClientOverview() {
     return () => window.removeEventListener("calendarit:daylogSaved", onSaved as EventListener);
   }, [todayISO]);
 
-  // Fetch once for the whole month, then split
+  // Fetch once for today → +30 days
   const [all, setAll] = useState<ApiItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const monthStart = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1);
-    const monthEnd = new Date(todayDate.getFullYear(), todayDate.getMonth() + 1, 0);
-    const from = toISO(monthStart);
-    const to = toISO(monthEnd);
+    const from = toISO(todayDate);
+    const to = toISO(addDays(todayDate, 30));
 
     (async () => {
       try {
@@ -281,47 +270,50 @@ export default function ClientOverview() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Split into Today / Week / Month (exclusive)
-  const sowISO = toISO(startOfWeekMon(todayDate));
-  const eowISO = toISO(endOfWeekMon(todayDate));
+  // ---------------- Rolling windows (exclusive) ----------------
+  const next7ISO  = toISO(addDays(todayDate, 7));
+  const next30ISO = toISO(addDays(todayDate, 30));
 
-  const todays = all.filter((i) => i.dateISO === todayISO);
-  const weeks = all.filter((i) => i.dateISO >= sowISO && i.dateISO <= eowISO && i.dateISO !== todayISO);
-  const months = all.filter((i) => !(i.dateISO >= sowISO && i.dateISO <= eowISO));
+  const todays = all.filter(i => i.dateISO === todayISO);
+  const next7  = all.filter(i => i.dateISO > todayISO && i.dateISO <= next7ISO);
+  const next30 = all.filter(i => i.dateISO > next7ISO && i.dateISO <= next30ISO);
 
   // Labels
-  const fmtWeekBadge = (iso: string) => {
+  const fmt7Badge = (iso: string) => {
     const d = new Date(iso);
     const wd = d.toLocaleDateString(locale, { weekday: "short" });
-    return `${wd} ${d.getDate()}`;
+    return `${wd}. ${d.getDate()}`;
   };
-  const fmtMonthBadge = (iso: string) => {
+  const fmt30Badge = (iso: string) => {
     const d = new Date(iso);
-    return `${d.getDate()}.`;
+    const day = d.getDate().toString().padStart(2, "0");
+    const mon = (d.getMonth() + 1).toString().padStart(2, "0");
+    return `${day}.${mon}`;
   };
 
   const todayRows: OverviewItem[] = todays
     .sort((a, b) => (a.timeHHMM ?? "").localeCompare(b.timeHHMM ?? "")) // time first
     .map((i) => ({
       ...i,
-      whenLabel: i.kind === "work" && i.timeHHMM ? i.timeHHMM : i.kind === "todo" ? tTodo("due.label") : undefined,
+      whenLabel:
+        i.kind === "work" && i.timeHHMM
+          ? i.timeHHMM
+          : i.kind === "todo"
+          ? tTodo("due.label")
+          : undefined,
     }));
 
-  const weekRows: OverviewItem[] = weeks
+  const weekRows: OverviewItem[] = next7
     .sort((a, b) => a.dateISO.localeCompare(b.dateISO))
-    .map((i) => ({ ...i, whenLabel: fmtWeekBadge(i.dateISO) }));
+    .map((i) => ({ ...i, whenLabel: fmt7Badge(i.dateISO) }));
 
-  const monthRows: OverviewItem[] = months
+  const monthRows: OverviewItem[] = next30
     .sort((a, b) => a.dateISO.localeCompare(b.dateISO))
-    .map((i) => ({ ...i, whenLabel: fmtMonthBadge(i.dateISO) }));
+    .map((i) => ({ ...i, whenLabel: fmt30Badge(i.dateISO) }));
 
   // Nameday & Quote
   const quote = useMemo(() => quoteOfTheDay(locale), [locale]);
   const namedayText = useMemo(() => getNamedayText(locale), [locale]);
-
-  // Fallbacks, ja nav dayColor: izmanto tos pašus sky tonus, ko jau lietoji
-  const fallbackBorder = "#0ea5e9"; // sky-500
-  const fallbackText = "#0284c7";   // sky-600
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
@@ -330,22 +322,19 @@ export default function ClientOverview() {
         {/* Title */}
         <h1 className="text-2xl font-bold md:justify-self-start">{t("title")}</h1>
 
-        {/* Today tile — izmanto DayLog krāsu, ja ir */}
-     <button
-  type="button"
-  onClick={() => setOpenDate(todayISO as ISODate)}
-  aria-label="Open today's day log"
-  className="group relative flex flex-col justify-center rounded-2xl border-2 border-sky-500 bg-white shadow-sm w-32 sm:w-40 h-24 px-3 py-2 hover:bg-sky-50 focus:outline-none md:justify-self-center"
->
-  <span
-    className="text-4xl sm:text-5xl font-semibold leading-none"
-    style={{ color: todayColor ?? "#0284c7" }}  // 🔹 tikai cipars maina krāsu
-  >
-    {todayNum}
-  </span>
-  <span className="text-sm sm:text-base text-neutral-600 capitalize">{weekday}</span>
-  <span className="text-xs sm:text-sm text-neutral-600">{dateLabel}</span>
-</button>
+        {/* Today tile — lieto DayLog krāsu, ja ir */}
+        <button
+          type="button"
+          onClick={() => setOpenDate(todayISO as ISODate)}
+          aria-label="Open today's day log"
+          className="group relative flex flex-col justify-center rounded-2xl border-2 border-sky-500 bg-white shadow-sm w-32 sm:w-40 h-24 px-3 py-2 hover:bg-sky-50 focus:outline-none md:justify-self-center"
+        >
+          <span className="text-4xl sm:text-5xl font-semibold leading-none" style={{ color: todayColor ?? "#0284c7" }}>
+            {todayNum}
+          </span>
+          <span className="text-sm sm:text-base text-neutral-600 capitalize">{weekday}</span>
+          <span className="text-xs sm:text-sm text-neutral-600">{dateLabel}</span>
+        </button>
 
         {/* Spacer tikai desktopam */}
         <div className="hidden md:block" />
@@ -367,7 +356,7 @@ export default function ClientOverview() {
           )}
         </Card>
 
-        {/* This Week */}
+        {/* Next 7 days */}
         <Card title={t("weekAhead")} icon={<span>🗓️</span>}>
           {loading ? (
             <Skeleton className="h-24" />
@@ -380,7 +369,7 @@ export default function ClientOverview() {
           )}
         </Card>
 
-        {/* This month’s */}
+        {/* Next 30 days */}
         <Card title={t("monthAnniversaries")} icon={<span>🎉</span>}>
           {loading ? (
             <Skeleton className="h-24" />

@@ -104,8 +104,8 @@
 "title": "Обзор",
 "todayEvents": "События сегодня",
 "noEventsToday": "События не найдены.",
-"weekAhead": "Этот месяц",
-"monthAnniversaries": "Юбилеи этого месяца",
+"weekAhead": "Ближайшие 7 дней",
+"monthAnniversaries": "Ближайшие 30 дней",
 "quote": "Цитата дня",
 "nameDay": "Именины",
 "weatherMini": "Погода",
@@ -204,6 +204,10 @@
 },
 
 "groceries": {
+      "lists": {
+      "daily": "Ikdienišķais saraksts",
+      "longterm": "ilgtermiņa saraksts"
+    },
 "loading": "Загрузка списка покупок…",
 "title": "Покупки",
 "subtitle": "Добавляйте товары в список",

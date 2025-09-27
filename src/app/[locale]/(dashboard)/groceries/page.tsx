@@ -1,48 +1,79 @@
-// src/app/[locale]/(dashboard)/groceries/page.tsx   (route file can be page.tsx)
+// src/app/[locale]/(dashboard)/groceries/page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useTranslations } from "@/lib/i18n/i18n";
+import { useRouter, useSearchParams } from "next/navigation";
 
 type GroceryItem = {
   id: number;
   text: string;
   completed: boolean;
   createdAt: string; // ISO
+  list?: string;
 };
+
+type ListDef = { key: string; label: string };
 
 export default function Groceries() {
   const t = useTranslations("groceries");
+  const router = useRouter();
+  const sp = useSearchParams();
+
+  // Tikai 2 saraksti (centrēti)
+  const LISTS: ListDef[] = useMemo(
+    () => [
+      { key: "daily",    label: t("lists.daily") },    // Ikdienišķais grozs
+      { key: "longterm", label: t("lists.longterm") }, // Ilgtermiņa lielie pirkumi
+    ],
+    [t]
+  );
+  const ALLOWED = new Set(LISTS.map(l => l.key));
+
+  // Sākotnējā vērtība + normalizācija
+  const initial = sp.get("list") || "daily";
+  const [currentList, setCurrentList] = useState<string>(ALLOWED.has(initial) ? initial : "daily");
+
+  // URL sync bez pārlādes
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("list") !== currentList) {
+      url.searchParams.set("list", currentList);
+      router.replace(url.pathname + "?" + url.searchParams.toString(), { scroll: false });
+    }
+  }, [currentList, router]);
+
   const [items, setItems] = useState<GroceryItem[]>([]);
   const [newItem, setNewItem] = useState("");
   const [loading, setLoading] = useState(true);
 
+  const refetch = useCallback(async () => {
+    const qs = new URLSearchParams({ list: currentList });
+    const res = await fetch(`/api/groceries?${qs}`, { cache: "no-store" });
+    const data = await res.json();
+    setItems(data.items ?? []);
+  }, [currentList]);
+
   useEffect(() => {
     (async () => {
-      try {
-        const res = await fetch("/api/groceries", { cache: "no-store" });
-        const data = await res.json();
-        setItems(data.items ?? []);
-      } finally {
-        setLoading(false);
-      }
+      setLoading(true);
+      try { await refetch(); } finally { setLoading(false); }
     })();
-  }, []);
+  }, [refetch]);
+
+  useEffect(() => {
+    const onChanged = () => { void refetch(); };
+    window.addEventListener("calendarit:groceriesChanged", onChanged);
+    return () => window.removeEventListener("calendarit:groceriesChanged", onChanged);
+  }, [refetch]);
 
   async function mutate(
     optimistic: (prev: GroceryItem[]) => GroceryItem[],
     doRequest: () => Promise<void>
   ) {
     let rollback: GroceryItem[] = [];
-    setItems((prev) => {
-      rollback = prev;
-      return optimistic(prev);
-    });
-    try {
-      await doRequest();
-    } catch {
-      setItems(rollback);
-    }
+    setItems(prev => { rollback = prev; return optimistic(prev); });
+    try { await doRequest(); } catch { setItems(rollback); }
   }
 
   async function addItem() {
@@ -51,28 +82,26 @@ export default function Groceries() {
     const tempId = -Date.now();
 
     await mutate(
-      (prev) => [...prev, { id: tempId, text, completed: false, createdAt: new Date().toISOString() }],
+      prev => [...prev, { id: tempId, text, completed: false, createdAt: new Date().toISOString(), list: currentList }],
       async () => {
         const res = await fetch("/api/groceries", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ text }),
+          body: JSON.stringify({ text, list: currentList }),
         });
         if (!res.ok) throw new Error("create");
         const { item } = await res.json();
-        setItems((prev) => prev.map((it) => (it.id === tempId ? item : it)));
+        setItems(prev => prev.map(it => (it.id === tempId ? item : it)));
       }
     );
-
     setNewItem("");
   }
 
   async function toggleItem(id: number) {
-    const current = items.find((x) => x.id === id);
+    const current = items.find(x => x.id === id);
     if (!current) return;
-
     await mutate(
-      (prev) => prev.map((x) => (x.id === id ? { ...x, completed: !x.completed } : x)),
+      prev => prev.map(x => (x.id === id ? { ...x, completed: !x.completed } : x)),
       async () => {
         const res = await fetch(`/api/groceries/${id}`, {
           method: "PATCH",
@@ -86,7 +115,7 @@ export default function Groceries() {
 
   async function deleteItem(id: number) {
     await mutate(
-      (prev) => prev.filter((x) => x.id !== id),
+      prev => prev.filter(x => x.id !== id),
       async () => {
         const res = await fetch(`/api/groceries/${id}`, { method: "DELETE" });
         if (!res.ok) throw new Error("delete");
@@ -95,17 +124,15 @@ export default function Groceries() {
   }
 
   async function clearCompleted() {
-    const ids = items.filter((i) => i.completed).map((i) => i.id);
+    const ids = items.filter(i => i.completed).map(i => i.id);
     if (ids.length === 0) return;
-
     const backup = items;
-    setItems((prev) => prev.filter((i) => !i.completed));
-    try {
-      await Promise.all(ids.map((id) => fetch(`/api/groceries/${id}`, { method: "DELETE" })));
-    } catch {
-      setItems(backup);
-    }
+    setItems(prev => prev.filter(i => !i.completed));
+    try { await Promise.all(ids.map(id => fetch(`/api/groceries/${id}`, { method: "DELETE" }))); }
+    catch { setItems(backup); }
   }
+
+  const doneCount = items.filter(i => i.completed).length;
 
   if (loading) {
     return (
@@ -115,14 +142,34 @@ export default function Groceries() {
     );
   }
 
-  const doneCount = items.filter((i) => i.completed).length;
-
   return (
     <div className="mx-auto max-w-2xl">
       {/* Header */}
       <div className="rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 p-6 text-white shadow">
         <h1 className="text-2xl font-semibold">🛒 {t("title")}</h1>
         <p className="opacity-90">{t("subtitle")}</p>
+      </div>
+
+      {/* Tabs (centrēti) */}
+      <div className="mt-4 flex justify-center">
+        <div className="inline-flex rounded-xl border border-gray-200 bg-white p-1 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+          {LISTS.map((l) => {
+            const active = l.key === currentList;
+            return (
+              <button
+                key={l.key}
+                onClick={() => setCurrentList(l.key)}
+                className={`min-w-[150px] rounded-lg px-4 py-2 text-sm transition
+                  ${active
+                    ? "bg-indigo-600 text-white shadow"
+                    : "text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"}`}
+                aria-current={active ? "page" : undefined}
+              >
+                {l.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Add item */}
@@ -143,6 +190,9 @@ export default function Groceries() {
             {t("addBtn")}
           </button>
         </div>
+        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+          {t("currentList")}: <b>{LISTS.find(l => l.key === currentList)?.label ?? currentList}</b>
+        </p>
       </div>
 
       {/* List / Empty */}
@@ -154,27 +204,18 @@ export default function Groceries() {
           </div>
         ) : (
           <>
-            {/* Stats */}
             <div className="mb-3 flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-600 dark:bg-gray-800 dark:text-gray-300 max-sm:flex-col max-sm:gap-2">
               <div className="flex gap-4">
-                <span>
-                  {t("stats.total")}: <b>{items.length}</b>
-                </span>
-                <span>
-                  {t("stats.completed")}: <b>{doneCount}</b>
-                </span>
+                <span>{t("stats.total")}: <b>{items.length}</b></span>
+                <span>{t("stats.completed")}: <b>{doneCount}</b></span>
               </div>
               {doneCount > 0 && (
-                <button
-                  onClick={clearCompleted}
-                  className="rounded-md bg-rose-600 px-3 py-1 text-white transition hover:bg-rose-500"
-                >
+                <button onClick={clearCompleted} className="rounded-md bg-rose-600 px-3 py-1 text-white transition hover:bg-rose-500">
                   {t("clearCompleted")}
                 </button>
               )}
             </div>
 
-            {/* List */}
             <ul className="space-y-2">
               {items.map((item) => (
                 <li
@@ -192,11 +233,7 @@ export default function Groceries() {
                       onChange={() => toggleItem(item.id)}
                       className="h-4 w-4 accent-indigo-600"
                     />
-                    <span
-                      className={`text-sm text-gray-800 dark:text-gray-100 ${
-                        item.completed ? "line-through text-gray-500 dark:text-gray-400" : ""
-                      }`}
-                    >
+                    <span className={`text-sm text-gray-800 dark:text-gray-100 ${item.completed ? "line-through text-gray-500 dark:text-gray-400" : ""}`}>
                       {item.text}
                     </span>
                   </div>

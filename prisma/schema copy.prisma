@@ -1,13 +1,14 @@
+// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")   // pooled (6543)
-  directUrl = env("DIRECT_URL")     // direct (5432) for migrate deploy
-  // shadowDatabaseUrl = env("SHADOW_DATABASE_URL") // ← nav vajadzīgs prod/deploy; var atstāt komentu vai dzēst
+  url       = env("DATABASE_URL")
+  directUrl = env("SHADOW_DATABASE_URL")
 }
+
 
 enum Recurrence {
   MONTHLY
@@ -174,4 +175,3 @@ model RecurringEvent {
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
 }
-

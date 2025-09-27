@@ -728,7 +728,7 @@ export default function Diary() {
         <h1 className="text-lg font-semibold mr-auto">{t("title")}</h1>
 
         {/* Diena / Nedēļa */}
-        <ModeToggle />
+       {!isSmall && <ModeToggle />}
 
         {/* Datums + Jauns — pa labi tajā pašā rindā uz ≥sm */}
         <div className="hidden sm:flex items-center gap-2">

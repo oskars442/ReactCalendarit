@@ -67,7 +67,7 @@
     "overview": "Pārskats",
     "calendar": "Kalendārs",
     "todo": "Uzdevumi",
-    "groceries": "Iepirkumi",
+    "groceries": "Iepirkumu grozs",
     "workDiary": "Darba dienasgrāmata",
     "weather": "Laikapstākļi",
     "stats": "Statistika",
@@ -104,8 +104,8 @@
     "title": "Pārskats",
     "todayEvents": "Šodienas notikumi",
     "noEventsToday": "Nav atrastu notikumu.",
-    "weekAhead": "Šo nedēļ",
-    "monthAnniversaries": "Šo mēnes",
+    "weekAhead": "Nākamās 7 dienas",
+    "monthAnniversaries": "Nākamās 30 dienas",
     "quote": "Dienas citāts",
     "nameDay": "Vārda dienas Latvijā",
     "weatherMini": "Laikapstākļi",
@@ -204,8 +204,12 @@
   },
 
   "groceries": {
+    "lists": {
+      "daily": "Ikdienišķais saraksts",
+      "longterm": "ilgtermiņa saraksts"
+    },
     "loading": "Iepirkumu saraksts ielādējas…",
-    "title": "Iepirkumi",
+    "title": "Iepirkumu grozs",
     "subtitle": "Pievieno produktus savam iepirkumu sarakstam",
     "placeholder": "Pievieno produktu…",
     "addBtn": "Pievienot",
