@@ -16,10 +16,19 @@
       "secondaryCta": "See demo",
       "noCard": "No credit card needed."
     },
-    "stats": {
-      "rating": "Average rating",
-      "users": "Users",
-      "uptime": "Uptime"
+   "benefits": {
+      "privacy": {
+        "title": "GDPR compliant",
+        "sub": "100% focused on privacy"
+      },
+      "open": {
+        "title": "Open to growth",
+        "sub": "We listen to user feedback"
+      },
+      "free": {
+        "title": "Free to start",
+        "sub": "Core features for everyone"
+      }
     },
     "features": {
       "title": "Everything you need to stay on top",

@@ -16,10 +16,19 @@
       "secondaryCta": "Skatīt demo",
       "noCard": "Nav vajadzīga maksājumu karte."
     },
-    "stats": {
-      "rating": "Vidējais vērtējums",
-      "users": "Lietotāji",
-      "uptime": "Pieejamība"
+    "benefits": {
+      "privacy": {
+        "title": "GDPR atbilstoši",
+        "sub": "100% fokusēti uz privātumu"
+      },
+      "open": {
+        "title": "AtvērtI attīstībai",
+        "sub": "Klausāmies lietotāju ieteikumos"
+      },
+      "free": {
+        "title": "Bezmaksas sākums",
+        "sub": "Pamata funkcijas pieejamas ikvienam"
+      }
     },
     "features": {
       "title": "Viss, kas vajadzīgs, lai būtu lietas kursā",
