@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import {usePathname} from "next/navigation";
-import {useLocale, useTranslations} from "@/lib/i18n/i18n";
+import { usePathname } from "next/navigation";
+import { useLocale, useTranslations } from "@/lib/i18n/i18n";
 
 export default function Footer() {
   const t = useTranslations("footer");
@@ -10,26 +10,32 @@ export default function Footer() {
   const pathname = usePathname() || "/";
   const year = new Date().getFullYear();
 
-  // Landing = /lv, /en, /ru (with or without trailing slash)
-  const isLanding = /^\/(lv|en|ru)\/?$/.test(pathname);
+  // ====== Variants: izvēlies "deep" | "midnight" | "charcoal" ======
+  const theme: "deep" | "midnight" | "charcoal" = "deep";
 
-  // Chrome
-  const wrapCls = isLanding
-    ? // gradient bar to ensure contrast over light content
-      "border-t border-white/10 bg-gradient-to-b from-indigo-600/40 via-indigo-600/30 to-violet-700/40 text-white"
-    : "border-t border-neutral-200 bg-white text-neutral-700";
+  const gradientMap = {
+    deep:
+      // Tumšāks indigo→violet + neliela necaurspīdība
+      "border-t border-white/10 text-white " +
+      "bg-gradient-to-b from-indigo-800/70 via-indigo-900/70 to-violet-900/70",
+    midnight:
+      // Tumšs zils→indigo ar dziļumu
+      "border-t border-white/10 text-white " +
+      "bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-900",
+    charcoal:
+      // Grafīts ar violetu piesitienu
+      "border-t border-white/10 text-white " +
+      "bg-gradient-to-b from-neutral-900 via-neutral-900 to-violet-950/80",
+  } as const;
 
-  const titleCls = isLanding
-    ? "text-white font-semibold"
-    : "text-neutral-900 font-semibold";
+  // Vienmēr gradient visās lapās
+  const wrapCls = gradientMap[theme];
 
-  const linkCls = isLanding
-    ? "text-white/90 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 rounded-sm"
-    : "text-neutral-700 hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-300 rounded-sm";
-
-  const subtle = isLanding ? "text-white/70" : "text-neutral-500";
-
-  const dividerCls = isLanding ? "border-white/15" : "border-neutral-200";
+  const titleCls = "text-white font-semibold";
+  const linkCls =
+    "text-white/90 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 rounded-sm";
+  const subtle = "text-white/70";
+  const dividerCls = "border-white/15";
 
   const nav = [
     { href: `/${locale}/`, label: t("nav.home") },
@@ -44,9 +50,7 @@ export default function Footer() {
         <div className="grid gap-10 md:grid-cols-4 items-start">
           {/* Brand */}
           <div>
-            <div className={`text-2xl font-bold ${isLanding ? "text-white" : "text-neutral-900"}`}>
-              Calendarit
-            </div>
+            <div className="text-2xl font-bold text-white">Calendarit</div>
             <Link href={`/${locale}/about`} className={`mt-2 inline-block ${linkCls}`}>
               {t("learnMore")}
             </Link>

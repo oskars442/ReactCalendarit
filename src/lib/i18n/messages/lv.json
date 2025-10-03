@@ -445,29 +445,63 @@
     "toastTodosOk": "Pievienots Uzdevumiem",
     "toastGenericErr": "Neizdevās saglabāt"
   },
-  "suggestions": {
-    "title": "Iesaki uzlabojumu",
-    "desc": "Ja Tev ir ideja, pamanīji kļūdu vai vienkārši ierosinājums — šī ir īstā vieta. Mēs izlasām visu!",
-    "form": {
-      "name": "Tavs vārds (nav obligāti)",
-      "email": "Tavs e-pasts (nav obligāti)",
-      "anon": "Vēlos palikt anonīms",
-      "hide": "Nevēlos rādīt publiski",
-      "content": "Tavs ieteikums",
-      "submit": "Iesniegt",
-      "ok": "Paldies! Ieteikums saņemts.",
-      "err": "Ups, neizdevās iesniegt. Pamēģini vēlreiz.",
-      "charsToMin": "Rakstzīmju lai iesniegtu formu",
-      "hintLine": "Ieteikumu forma"
+  "about": {
+    "hero": {
+      "badge": "✨ Iepazīsti komandu un mūsu stāstu",
+      "title": "Par",
+      "subtitle": "Veidojam vienotu ikdienas centru, kas palīdz plānot uzdevumus, sakārtot kalendāru, sekot finansēm un laikapstākļiem — skaisti integrēti un ērti lietojami."
+    }, "stats": {
+      "first": {
+        "value": "GDPR atbilstoši",
+        "label": "100% fokusēti uz privātumu"
+      },
+      "second": {
+        "value": "Atvērti attīstībai",
+        "label": "Klausāmies lietotāju ieteikumos"
+      },
+      "third": {
+        "value": "Bezmaksas sākums",
+        "label": "Pamata funkcijas pieejamas ikvienam"
+      }
     },
-    "list": {
-      "title": "Ieteikumi",
-      "loginToView": "Lūdzu, pieslēdzieties, lai skatītu šo sadaļu.",
-      "empty": "Pagaidām nav ieteikumu."
+    "mission": {
+      "title": "Mūsu misija",
+      "body": "Mazas uzlabojumu porcijas veido lielus rezultātus. CalendarIt apvieno tavu kalendāru, uzdevumus, naudu un laikapstākļus vienā mierīgā, pārskatāmā vidē."
     },
-    "manage": "Manage Suggestions",
-    "status": {
-      "NEW":"Jauns","PLANNED":"Ieplānots","IN_PROGRESS":"Procesā","DONE":"Pabeigts","REJECTED":"Noraidīts"
+    "features": {
+      "list": [
+        { "icon": "🗓️", "title": "Plāno ar skaidrību", "desc": "Tīri kalendāra un uzdevumu skati, lai vienmēr zinātu nākamo soli." },
+        { "icon": "💸", "title": "Seko svarīgajam", "desc": "Vienkārša finanšu uzskaite un ieskati gudrākiem lēmumiem." },
+        { "icon": "🌦️", "title": "Zini par laikapstākļiem", "desc": "Laika kartītes līdzās dienas plānam, lai nebūtu pārsteigumu." },
+        { "icon": "⚡", "title": "Ātri un patīkami", "desc": "Mūsdienīga, reaģējoša pieredze ar fokusu uz ātrumu un skaidrību." },
+        { "icon": "🔒", "title": "Privātums pirmajā vietā", "desc": "Tavi dati ir tavi. Glabājam minimumu un dodam kontroli tev." },
+        { "icon": "✨", "title": "Ar rūpēm veidots", "desc": "Sīkas nianses, gudri iestatījumi pēc noklusējuma un pārdomātas integrācijas." }
+      ]
+    },
+    "values": {
+      "title": "Kas mums svarīgi",
+      "subtitle": "Principi, kas ietekmē katru funkciju un pikseli.",
+      "list": [
+        { "title": "Vienkāršība pāri visam", "desc": "Rīkiem jābūt nemanāmiem. Noņemam berzi, līdz paliek tikai noderīgais." },
+        { "title": "Cieņa pret tavu laiku", "desc": "Ātras, paredzamas darbības, lai ātri tiktu galā ar lietām." },
+        { "title": "Pārdomāti noklusējumi", "desc": "Gudri iestatījumi uzreiz gatavi darbam, ar jaudu, kad vajag." },
+        { "title": "Uzticēšanās un privātums", "desc": "Iegūstam uzticību, sargājot datus un skaidri komunicējot." }
+      ]
+    },
+    "timeline": {
+      "title": "Kā nonācām līdz šodienai",
+      "subtitle": "Īss stāsts par nelieliem, bet regulāriem soļiem.",
+      "list": [
+        { "year": "2024", "title": "Ideja", "body": "Vajadzība pēc mierīgāka plānotāja iededza pirmos prototipus." },
+        { "year": "2025", "title": "Publiskā beta", "body": "Kalendārs, uzdevumi un laikapstākļi apvienojas jaunā dizaina valodā." },
+        { "year": "2025–tagad", "title": "Integrācijas un ieskati", "body": "Finanšu uzskaite un noderīgi ieskati padara plānošanu vēl gudrāku." }
+      ]
+    },
+    "cta": {
+      "title": "Uzdod jautājumu 👋",
+      "subtitle": "Ir idejas, jautājumi vai vēlies sadarboties? Priecāsimies saņemt ziņu.",
+      "button": "Sazināties",
+      "aria": "Atvērt e-pastu saziņai ar CalendarIt"
     }
   }
 }

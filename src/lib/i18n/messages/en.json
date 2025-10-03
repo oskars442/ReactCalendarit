@@ -468,5 +468,65 @@
     "status": {
       "NEW":"New","PLANNED":"Planned","IN_PROGRESS":"In progress","DONE":"Done","REJECTED":"Rejected"
     }
+  },
+  "about": {
+    "hero": {
+      "badge": "✨ Meet the team & our story",
+      "title": "About",
+      "subtitle": "We’re building the all-in-one life hub that helps you plan tasks, track money, keep a calendar, and check the weather — beautifully integrated and pleasantly simple."
+    },
+    "stats": {
+      "first": {
+        "value": "GDPR-compliant",
+        "label": "100% privacy-focused"
+      },
+      "second": {
+        "value": "Open development",
+        "label": "We listen to user feedback"
+      },
+      "third": {
+        "value": "Free start",
+        "label": "Core features available to everyone"
+      }
+    },
+    "mission": {
+      "title": "Our Mission",
+      "body": "Small improvements compound into big outcomes. CalendarIt turns everyday routines into meaningful progress by bringing your schedule, to-dos, money, and weather into one calm, cohesive place."
+    },
+    "features": {
+      "list": [
+        { "icon": "🗓️", "title": "Plan with clarity", "desc": "Clean views for calendar and tasks so you always know what’s next." },
+        { "icon": "💸", "title": "Track what matters", "desc": "Simple finance tracking and insights to help you make smarter decisions." },
+        { "icon": "🌦️", "title": "Stay weather-aware", "desc": "Weather cards inline with your day to avoid surprises and plan better." },
+        { "icon": "⚡", "title": "Fast & delightful", "desc": "A modern, responsive experience focused on speed, clarity and comfort." },
+        { "icon": "🔒", "title": "Privacy-first", "desc": "Your data is yours. We store the minimum and put you in control." },
+        { "icon": "✨", "title": "Built with care", "desc": "Small details, well-chosen defaults and thoughtful integrations." }
+      ]
+    },
+    "values": {
+      "title": "What We Value",
+      "subtitle": "Principles that shape every feature and every pixel.",
+      "list": [
+        { "title": "Simplicity over everything", "desc": "Tools should feel invisible. We remove friction until only the useful remains." },
+        { "title": "Respect for your time", "desc": "Fast, predictable interactions that help you get in and out quickly." },
+        { "title": "Thoughtful defaults", "desc": "Smart presets that work out of the box, with power when you want it." },
+        { "title": "Trust & privacy", "desc": "We earn your trust by protecting your data and communicating clearly." }
+      ]
+    },
+    "timeline": {
+      "title": "How We Got Here",
+      "subtitle": "A short story of small steps, shipped consistently.",
+      "list": [
+        { "year": "2024", "title": "The idea", "body": "A personal need for a calmer planner sparks the first prototypes." },
+        { "year": "2025", "title": "Public beta", "body": "Calendar, tasks and weather come together with a new design language." },
+        { "year": "2025–now", "title": "Integrations & insights", "body": "Finance tracking and helpful insights make planning even smarter." }
+      ]
+    },
+    "cta": {
+      "title": "Say hello 👋",
+      "subtitle": "Have questions, ideas, or want to collaborate? We’d love to hear from you.",
+      "button": "Contact us",
+      "aria": "Open email to contact CalendarIt"
+    }
   }
 }
