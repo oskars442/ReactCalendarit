@@ -87,6 +87,8 @@ export default function HeaderNav({
     "weather",
     "stats",
     "admin",
+    "suggestions",
+    "workout",
   ]);
   const isDashboardArea = DASHBOARD_SEGS.has(seg1);
 
@@ -113,7 +115,7 @@ export default function HeaderNav({
   const ctaCls = "rounded-xl px-4 py-2 font-semibold bg-white text-indigo-700 hover:bg-white/90";
 
   // ---- Disabled items helpers (suggestions, pricing) ----
-  const DISABLED_SEGS = new Set(["suggestions", "pricing"]);
+  const DISABLED_SEGS = new Set(["pricing"]);
   const isDisabledHref = (href: string) => {
     const lastSeg = href.split("/").filter(Boolean).pop();
     return !!lastSeg && DISABLED_SEGS.has(lastSeg);

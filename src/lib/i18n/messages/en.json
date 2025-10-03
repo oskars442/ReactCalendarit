@@ -204,6 +204,11 @@
   },
 
   "groceries": {
+        "lists": {
+      "daily": "Everyday list",
+      "longterm": "longterm list"
+    },
+   "currentList": "Current list",
     "loading": "Loading groceries…",
     "title": "Groceries",
     "subtitle": "Add products to your shopping list",
@@ -438,5 +443,30 @@
     "toastGroceriesOk": "Saved to Groceries",
     "toastTodosOk": "Saved to To-Dos",
     "toastGenericErr": "Failed to save"
+  },
+  "suggestions": {
+    "title": "Share an Improvement",
+    "desc": "Got an idea, spotted a bug, or a suggestion — this is the place. We read everything!",
+    "form": {
+      "name": "Your name (optional)",
+      "email": "Your email (optional)",
+      "anon": "I want to stay anonymous",
+      "hide": "Don't show publicly",
+      "content": "Your suggestion",
+      "submit": "Submit",
+      "ok": "Thanks! Suggestion received.",
+      "err": "Oops, failed to submit. Try again.",
+            "charsToMin": "{{n}} character(s) to minimum",
+      "hintLine": "Hint (optional)"
+    },
+    "list": {
+      "title": "Suggestions",
+      "loginToView": "Please sign in to view this section.",
+      "empty": "No suggestions yet."
+    },
+    "manage": "Manage Suggestions",
+    "status": {
+      "NEW":"New","PLANNED":"Planned","IN_PROGRESS":"In progress","DONE":"Done","REJECTED":"Rejected"
+    }
   }
 }

@@ -6,7 +6,7 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")   // pooled (6543)
   directUrl = env("DIRECT_URL")     // direct (5432) for migrate deploy
-  // shadowDatabaseUrl = env("SHADOW_DATABASE_URL") // ← nav vajadzīgs prod/deploy; var atstāt komentu vai dzēst
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL") // ← nav vajadzīgs prod/deploy; var atstāt komentu vai dzēst
 }
 
 enum Recurrence {
@@ -39,6 +39,14 @@ enum GroceryListKind {
   longterm  
 }
 
+enum SuggestionStatus {
+  NEW
+  PLANNED
+  IN_PROGRESS
+  DONE
+  REJECTED
+}
+
 model User {
   id             Int       @id @default(autoincrement())
   email          String    @unique
@@ -61,6 +69,23 @@ model User {
   labels WorkDiaryLabel[] 
 
   @@map("users")
+}
+
+model Suggestion {
+  id           Int               @id @default(autoincrement())
+  userId       Int?              // ja iesniedz ielogots
+  name         String?           // publisks, ja nav anonīms
+  email        String?           // iekšējai saziņai
+  isAnonymous  Boolean           @default(false)
+  hidePublic   Boolean           @default(false) // “Nevēlos rādīt publiski”
+  content      String
+  status       SuggestionStatus  @default(NEW)
+  pinned       Boolean           @default(false)
+  archived     Boolean           @default(false)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@index([status, archived])
 }
 
 model WorkDiaryEntry {
