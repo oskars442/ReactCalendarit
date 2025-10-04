@@ -316,7 +316,7 @@ export default function ClientOverview() {
   const namedayText = useMemo(() => getNamedayText(locale), [locale]);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6">
+    <div className="mx-auto max-w-7xl px-4 pt-2 md:pt-4 pb-6">
       {/* Header row */}
       <div className="mb-6 flex items-center justify-between gap-4 md:grid md:grid-cols-[1fr_auto_1fr]">
         {/* Title */}

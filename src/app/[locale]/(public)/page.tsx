@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import CardSwap from "@/components/CardSwap";
 import Link from 'next/link';
 import { useTranslations, useLocale } from '@/lib/i18n/i18n';
 
@@ -18,11 +18,40 @@ function PrimaryButton({ href, children }: { href: string; children: React.React
     </Link>
   );
 }
-function GhostButton({ href, children }: { href: string; children: React.ReactNode }) {
+function GhostButton({
+  href,
+  children,
+  disabled = false,
+}: {
+  href?: string;
+  children: React.ReactNode;
+  disabled?: boolean;
+}) {
+  const base =
+    "inline-flex items-center justify-center rounded-xl px-5 py-3 transition-colors";
+
+  if (disabled) {
+    return (
+      <span
+        aria-disabled="true"
+        className={
+          base +
+          " border border-white/20 bg-white/5 text-white/70 opacity-60 " +
+          "cursor-not-allowed pointer-events-none"
+        }
+      >
+        {children}
+      </span>
+    );
+  }
+
   return (
     <Link
-      href={href}
-      className="inline-flex items-center justify-center rounded-xl border border-white/30 bg-white/5 px-5 py-3 text-white hover:bg-white/10 transition-colors"
+      href={href!}
+      className={
+        base +
+        " border border-white/30 bg-white/5 text-white hover:bg-white/10"
+      }
     >
       {children}
     </Link>
@@ -45,6 +74,13 @@ export default function Landing() {
   const t = useTranslations('landing');
   const locale = useLocale() || 'en';
 
+  // Bildes switcherim — pievieno vēl ierakstus, ja gribi vairāk variantu
+const heroImages = [
+  { src: "/images/overview_view.png",  alt: "Overview",  width: 1200, height: 760 },
+  { src: "/images/weather_view.png",   alt: "Weather",   width: 1200, height: 760 },
+  { src: "/images/groceries_view.png", alt: "Groceries", width: 1200, height: 760 },
+];
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-[#4f46e5] via-[#6d5ae6] to-[#8b5cf6] text-white">
       {/* HERO */}
@@ -52,8 +88,7 @@ export default function Landing() {
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.22),transparent_60%)]" />
         <Container>
           {/* Mazāks vertikālais padding; uz lg joprojām plašāks */}
-         <div className="pt-6 md:pt-8 lg:pt-12 pb-10 md:pb-14 lg:pb-18 grid items-center gap-6 lg:gap-10 lg:grid-cols-2">
-
+          <div className="pt-6 md:pt-8 lg:pt-12 pb-10 md:pb-14 lg:pb-20 grid items-center gap-6 lg:gap-10 lg:grid-cols-2">
             {/* Teksta kolonna */}
             <div>
               <div className="mb-3 inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-sm">
@@ -73,7 +108,7 @@ export default function Landing() {
               </div>
               <p className="mt-3 text-sm text-white/70">{t('hero.noCard')}</p>
 
-              {/* Priekšrocības: 1 → 2 → 3 kolonnas, kompaktāks paddings */}
+              {/* Priekšrocības: 1 → 2 → 3 kolonnas */}
               <div className="mt-8 grid gap-4 sm:gap-5 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
                 <BenefitCard title={t('benefits.privacy.title')} sub={t('benefits.privacy.sub')} />
                 <BenefitCard title={t('benefits.open.title')} sub={t('benefits.open.sub')} />
@@ -82,31 +117,13 @@ export default function Landing() {
             </div>
 
             {/* Preview kolonna — slēpta uz <md, lai netaisa “tukšumu” */}
-            <div className="relative hidden md:block">
-              <div className="rounded-2xl border border-white/20 bg-white/10 p-2 shadow-2xl">
-                <Image
-                  src="/screens/overview-light.png"
-                  alt="App preview"
-                  width={1200}
-                  height={760}
-                  className="rounded-xl ring-1 ring-white/10 w-full h-auto"
-                  priority
-                  sizes="(min-width: 1280px) 620px, (min-width: 1024px) 520px, 100vw"
-                />
-              </div>
-
-              {/* Otrā karte — nedaudz mazāka, nedaudz rotēta; arī tikai ≥md */}
-              <div className="absolute -right-6 -bottom-6 rounded-2xl border border-white/20 bg-white/10 p-2 rotate-3">
-                <Image
-                  src="/screens/weather-light.png"
-                  alt="Weather preview"
-                  width={560}
-                  height={380}
-                  className="rounded-xl ring-1 ring-white/10 w-full h-auto"
-                  sizes="(min-width: 1280px) 420px, (min-width: 1024px) 360px, 50vw"
-                />
-              </div>
-            </div>
+<div className="relative hidden md:block">
+  <CardSwap
+    images={heroImages}
+    className="p-2"                 // šeit var iedot arī w-[620px] u.c.
+    buttonClassName=""             // pārraksti, ja vajag citus toņus
+  />
+</div>
           </div>
         </Container>
       </section>
@@ -159,7 +176,7 @@ export default function Landing() {
         </Container>
       </section>
 
-      {/* TESTIMONIALS — atstāj, ja kādreiz būs */}
+      {/* TESTIMONIALS — atstāts nākotnei */}
       <section className="py-12 md:py-16 lg:py-24 bg-white">
         <Container>
           <h2 className="text-3xl md:text-4xl font-bold text-neutral-900 text-center">{t('social.title')}</h2>
@@ -184,10 +201,11 @@ export default function Landing() {
           <div className="rounded-3xl border border-white/20 bg-white/10 p-8 md:p-10 text-center backdrop-blur">
             <h3 className="text-2xl md:text-3xl font-bold">{t('cta.title')}</h3>
             <p className="mt-2 text-white/90">{t('cta.sub')}</p>
-            <div className="mt-6 flex justify-center gap-3">
-              <PrimaryButton href={`/${locale}/register`}>{t('cta.primary')}</PrimaryButton>
-              <GhostButton href={`/${locale}/pricing`}>{t('cta.secondary')}</GhostButton>
-            </div>
+           <div className="mt-6 flex justify-center gap-3">
+  <PrimaryButton href={`/${locale}/register`}>{t('cta.primary')}</PrimaryButton>
+  <GhostButton disabled>{t('cta.secondary')}</GhostButton>
+  {/* vai: <GhostButton href={`/${locale}/pricing`} disabled>…</GhostButton> */}
+</div>
           </div>
         </Container>
       </section>

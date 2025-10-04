@@ -1,0 +1,214 @@
+calendarit
+├── prisma
+│   └── migrations
+│       ├── 20250830112045_init_diary
+│       ├── 20250830113545_add_users
+│       ├── 20250831161011_make_end_at_optional
+│       ├── 20250831161019_add_end_after_start_check
+│       ├── 20250831164916_add_grocery_items
+│       ├── 20250831171705_todo_and_groceries
+│       ├── 20250903175210_add_daylog_unique_and_timestamps
+│       ├── 20250906183021_add_recurring_event_and_slim_daylog
+│       ├── 20250918144051_add_work_diary_labels
+│       ├── 20250926185728_add_grocery_list_enum
+│       └── 20250927160610_sugestions
+├── public
+├── scripts
+│   └── testDiary.js
+├── src
+│   ├── app
+│   │   ├── [locale]
+│   │   │   ├── (auth)
+│   │   │   │   ├── login
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── register
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── reset
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── verify
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── layout.tsx
+│   │   │   ├── (dashboard)
+│   │   │   │   ├── calendar
+│   │   │   │   │   ├── CalendarClient.tsx
+│   │   │   │   │   ├── CalendarMonthClient.tsx
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── dashboard
+│   │   │   │   │   ├── ClientOverview.tsx
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── groceries
+│   │   │   │   │   ├── Groceries.tsx
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── stats
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── suggestions
+│   │   │   │   │   ├── page.tsx
+│   │   │   │   │   ├── SuggestionsForm.tsx
+│   │   │   │   │   └── SuggestionsList.tsx
+│   │   │   │   ├── todo
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── weather
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── work-diary
+│   │   │   │   │   ├── Diary.tsx
+│   │   │   │   │   ├── DiaryOLD.tsx
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── workout
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── DashboardLayoutClient.tsx
+│   │   │   │   └── layout.tsx
+│   │   │   ├── (public)
+│   │   │   │   ├── about
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── cookies
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── faq
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── imprint
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── pricing
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── privacy
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── terms
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── layout.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── admin
+│   │   │   │   ├── _components
+│   │   │   │   │   └── CloseAdminButton.tsx
+│   │   │   │   ├── suggestions
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── layout.tsx
+│   │   │   ├── error.tsx
+│   │   │   ├── layout.tsx
+│   │   │   └── not-found.tsx
+│   │   ├── api
+│   │   │   ├── admin
+│   │   │   │   └── users
+│   │   │   │       └── route.ts
+│   │   │   ├── auth
+│   │   │   │   └── [...nextauth]
+│   │   │   │       └── route.ts
+│   │   │   ├── daylog
+│   │   │   │   ├── route.ts
+│   │   │   │   └── routeold.ts
+│   │   │   ├── groceries
+│   │   │   │   ├── [id]
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── route.ts
+│   │   │   ├── health
+│   │   │   │   ├── db
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── env
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── supabase
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── tcp
+│   │   │   │       └── route.ts
+│   │   │   ├── overview
+│   │   │   │   └── route.ts
+│   │   │   ├── recurring
+│   │   │   │   ├── [id]
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── route.ts
+│   │   │   ├── register
+│   │   │   │   └── route.ts
+│   │   │   ├── suggestions
+│   │   │   │   ├── [id]
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── route.ts
+│   │   │   ├── todo
+│   │   │   │   ├── [id]
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── route.ts
+│   │   │   └── work
+│   │   │       ├── [id]
+│   │   │       │   └── route.ts
+│   │   │       ├── labels
+│   │   │       │   ├── [id]
+│   │   │       │   │   └── route.ts
+│   │   │       │   └── route.ts
+│   │   │       └── route.ts
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   ├── assets
+│   ├── components
+│   │   ├── day
+│   │   │   ├── AmountInput.tsx
+│   │   │   └── DayDialog.tsx
+│   │   ├── AuthProvider.tsx
+│   │   ├── CalendarMonth.tsx
+│   │   ├── DashboardShell.tsx
+│   │   ├── Footer.tsx
+│   │   ├── HeaderNav.tsx
+│   │   ├── LanguageMenu.tsx
+│   │   ├── MonthSwitcher.tsx
+│   │   ├── PublicOffset.tsx
+│   │   ├── SidebarNav.tsx
+│   │   ├── SignOutButton.tsx
+│   │   └── WorkDiaryModal.tsx
+│   ├── features
+│   │   ├── overview
+│   │   │   ├── namedays
+│   │   │   │   └── lv_namedays.json
+│   │   │   └── quotes.ts
+│   │   └── weather
+│   │       ├── assets
+│   │       ├── components
+│   │       │   ├── CurrentCard.jsx
+│   │       │   ├── DailyForecast.jsx
+│   │       │   ├── HourlyStrip.jsx
+│   │       │   ├── SearchBar.jsx
+│   │       │   ├── SunPath.jsx
+│   │       │   ├── UnitToggle.jsx
+│   │       │   └── WeatherDetails.jsx
+│   │       ├── hooks
+│   │       │   └── useLocalStorage.js
+│   │       ├── utils
+│   │       │   ├── api.js
+│   │       │   ├── dateHelpers.js
+│   │       │   ├── format.js
+│   │       │   └── weatherCodes.js
+│   │       ├── index.css
+│   │       └── WeatherView.tsx
+│   ├── hooks
+│   │   └── useRecurringMonth.ts
+│   ├── lib
+│   │   ├── i18n
+│   │   │   ├── messages
+│   │   │   │   ├── en.json
+│   │   │   │   ├── lv.json
+│   │   │   │   └── ru.json
+│   │   │   ├── config.ts
+│   │   │   └── i18n.tsx
+│   │   ├── auth-helpers.ts
+│   │   ├── auth.ts
+│   │   ├── date.ts
+│   │   ├── db.ts
+│   │   ├── eventIcons.ts
+│   │   ├── password.ts
+│   │   ├── prisma.ts
+│   │   ├── recurrence.ts
+│   │   ├── recurrenceold.ts
+│   │   ├── repo.ts
+│   │   ├── session.ts
+│   │   ├── types.ts
+│   │   ├── utils.ts
+│   │   └── zodSchemas.ts
+│   ├── services
+│   │   ├── groceries.ts
+│   │   ├── recurring.ts
+│   │   ├── todos.ts
+│   │   └── workDiary.ts
+│   └── types
+│       └── next-auth.d.ts
+├── components.json
+├── middleware.ts
+├── next-env.d.ts
+├── next.config.ts
+├── package.json
+├── README.md
+├── tailwind.config.js
+└── tsconfig.json

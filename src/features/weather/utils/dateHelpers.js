@@ -1,3 +1,5 @@
+// dataHelpers.js
+
 export const formatTime = (dateString) => {
   const date = new Date(dateString);
   return date.toLocaleTimeString('lv-LV', { 

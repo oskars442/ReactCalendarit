@@ -1,46 +1,57 @@
 // src/components/CalendarMonth.tsx
-"use client";
+"use client"; // norāda Next.js, ka šis ir klienta (browser) komponents
 
+// ----- Datu tipi, ko izmanto dienas šūnās -----
+
+// Minimāls "darba dienasgrāmatas" ieraksta tips (mēs kalendārā rādām tikai, ka ir kāds ieraksts)
 type DayItem = { id: string; title: string };
 
+// Vienas kalendāra dienas (šūnas) datu modelis
 type Day = {
-  dateISO: string;
-  day: number;
-  inMonth: boolean;
-  items: DayItem[];      // work-diary items (we render a briefcase only)
-  dayColor?: string;
-  hasTodos?: boolean;    // optional notebook icon
+  dateISO: string;   // datums formātā "YYYY-MM-DD" (ISO, bez laika)
+  day: number;       // dienas numurs (1..31) vizuālajam ciparam kreisajā augšējā stūrī
+  inMonth: boolean;  // vai šī šūna pieder pašreiz renderētajam mēnesim (false – iepr./nākamā mēn. “pelēkās” dienas)
+  items: DayItem[];  // darba dienasgrāmatas ieraksti konkrētajā dienā (ikonai 💼)
+  dayColor?: string; // hekskrāsa vai CSS krāsa dienas ciparam (ja iestatīta DayLog ierakstā)
+  hasTodos?: boolean;// vai šajā datumā ir neizpildīti To-Do ar termiņu (ikonai ✅)
 };
 
+// ----- Galvenais mēneša režģa komponents -----
+
 export default function CalendarMonth({
-  days,
-  weekdayLabels,
-  onOpenDate,
-  recurringDates, // ISO dates that have a recurring (yearly/monthly) event
+  days,            // 42 šūnas (6 nedēļas x 7 dienas) ar datiem vizualizācijai
+  weekdayLabels,   // nedēļas dienu nosaukumi (īsie: Pirmd., Otrd., …) 7 gab.
+  onOpenDate,      // callback, ko izsauc, kad lietotājs noklikšķina uz šūnas (atvērt dienu / dialogu)
+  recurringDates,  // ISO datumu kopa, kur ir atkārtojoši notikumi (ikona 🎉)
 }: {
   days: Day[];
   weekdayLabels: string[];
   onOpenDate?: (iso: string) => void;
   recurringDates?: Set<string>;
 }) {
+  // Šodienas datums ISO formātā, lai varētu izcelt šodienas šūnu (zils “ring”)
   const todayISO = new Date().toISOString().slice(0, 10);
 
   return (
     <div className="w-full">
-      {/* Weekday header */}
-      <div className="mb-2 grid grid-cols-7 gap-2">
+      {/* ---------- Nedēļas dienu galviņa (rinda virs režģa) ---------- */}
+      <div className="mb-1 md:mb-2 grid grid-cols-7 gap-0 md:gap-2">
         {weekdayLabels.map((lbl, i) => {
+          // kolonnas indekss 5/6 → sestdiena/svētdiena (weekend)
           const isWeekendCol = i === 5 || i === 6;
           return (
             <div
               key={lbl + i}
               className={
-                "rounded-md py-2 text-center text-[13px] font-semibold md:text-sm " +
+                // Uz mob: kantainas galviņas, mazāks vertikālais padding un fonts;
+                // Uz ≥md: noapaļotas un nedaudz lielākas.
+                "rounded-none md:rounded-md py-1 md:py-2 text-center text-[11px] md:text-sm font-semibold " +
+                // Atšķir fona/teksta krāsu brīvdienu kolonnām
                 (isWeekendCol
                   ? "bg-rose-50/60 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400"
                   : "bg-gray-50 text-gray-600 dark:bg-gray-800/40 dark:text-gray-300")
               }
-              title={lbl}
+              title={lbl} // pilnais nosaukums kā tooltips
             >
               {lbl}
             </div>
@@ -48,59 +59,75 @@ export default function CalendarMonth({
         })}
       </div>
 
-      {/* 6x7 grid */}
-      <div className="grid grid-cols-7 gap-2">
+      {/* ---------- 6x7 dienu režģis (vienmēr 42 šūnas) ---------- */}
+      <div className="grid grid-cols-7 gap-0 md:gap-2">
         {days.map(({ dateISO, day, inMonth, items, dayColor, hasTodos }, idx) => {
+          // aprēķinam kolonnas indeksu (0..6), lai varētu iekrāsot brīvdienu kolonnas
           const col = idx % 7;
           const isWeekendCol = col === 5 || col === 6;
+          // vai konkrētā šūna ir šodienas datums
           const isToday = dateISO === todayISO;
 
+          // Bāzes klases vienai šūnai (responsīvi – atšķirīga forma/izmēri uz mob/desktop)
           const base =
-            "relative min-h-24 md:min-h-28 rounded-xl border p-2 md:p-3 transition-all text-left";
+            [
+              "relative", // ļauj pozicionēt iekšējos elementus, ja vajag
+              // Uz mobilā šūna tiek veidota kvadrātiska (blīvāka), uz ≥md brīvāka augstumā
+              "aspect-square md:aspect-auto",
+              "min-h-0 md:min-h-28",     // mob: bez obligāta augstuma; md+: vismaz ~7rem
+              "rounded-none md:rounded-xl", // mob: bez radius; md+: noapaļotas šūnas
+              "border",                   // smalka robeža ap šūnu
+              "p-0.5 md:p-3",            // mob: ļoti mazs iekšējais padding; md+: ērtāks
+              "transition-all text-left", // nelielas pārejas hover/focus stāvokļiem
+              "flex flex-col",           // vertikāls izvietojums (cipars augšā, ikonas apakšā)
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400", // piekļūstamība ar klaviatūru
+            ].join(" ");
+
+          // Fona/robežu tēma, atkarībā no tā, vai šūna pieder aktīvajam mēnesim
           const monthTint = inMonth
             ? "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"
             : "bg-gray-50 dark:bg-gray-800/40 border-gray-200/60 dark:border-gray-800/60 opacity-80";
+
+          // Brīvdienu kolonām piešķiram ļoti vieglu fonu, ja ir aktīvais mēnesis
           const weekendTint =
             isWeekendCol && inMonth ? "bg-rose-50/40 dark:bg-rose-900/10" : "";
+
+          // Šodienai piešķiram zilu gredzenu (ring) un vieglu ēnu
           const todayRing = isToday ? "ring-2 ring-sky-400 dark:ring-sky-500 shadow-sm" : "";
 
+          // Dienas cipara teksta krāsa: šodiena – zils; citādi – normāla
           const defaultNumClass =
             isToday ? "text-sky-700 dark:text-sky-300" : "text-gray-900 dark:text-gray-100";
 
-          const hasDiary = (items?.length ?? 0) > 0;
-          const hasRecurring = recurringDates?.has(dateISO) ?? false;
+          // Ērtības karogi ikonām
+          const hasDiary = (items?.length ?? 0) > 0;               // 💼
+          const hasRecurring = recurringDates?.has(dateISO) ?? false; // 🎉
 
           return (
             <button
               key={dateISO}
               type="button"
-              aria-label={`Open day ${dateISO}`}
-              aria-current={isToday ? "date" : undefined}
-              className={[
-                base,
-                monthTint,
-                weekendTint,
-                todayRing,
-                "flex flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400",
-              ].join(" ")}
-              onClick={() => onOpenDate?.(dateISO)}
+              aria-label={`Open day ${dateISO}`} // piekļūstamība: screen reader u.c.
+              aria-current={isToday ? "date" : undefined} // norāda, ka šī ir “pašreizējā” diena
+              className={[base, monthTint, weekendTint, todayRing].join(" ")} // savienojam visas klases
+              onClick={() => onOpenDate?.(dateISO)} // uzklikšķinot – atveram dienu (ja callback padots)
             >
-              {/* Day number (top-left) */}
+              {/* ---- Dienas numurs (augšējais kreisais) ---- */}
               <div
-                className={"text-2xl md:text-3xl font-normal leading-tight " + defaultNumClass}
-                style={dayColor ? { color: dayColor } : undefined}
+                className={"text-base md:text-3xl font-normal leading-tight " + defaultNumClass}
+                style={dayColor ? { color: dayColor } : undefined} // ja DayLog iedevis krāsu – pārkrāsojam ciparu
               >
                 {day}
               </div>
 
-              {/* Icons row pinned to the bottom */}
+              {/* ---- Ikonu josla apakšā: 💼 ✅ 🎉 (uz mob mazākas) ---- */}
               <div className="mt-auto flex items-center gap-1">
                 {hasDiary && (
                   <span
                     role="img"
                     aria-label="work diary"
                     title={`${items.length} work diary item${items.length > 1 ? "s" : ""}`}
-                    className="text-xl leading-none"
+                    className="leading-none text-[13px] md:text-xl" // mob: ~13px; md+: lielākas
                   >
                     💼
                   </span>
@@ -110,7 +137,7 @@ export default function CalendarMonth({
                     role="img"
                     aria-label="todos"
                     title="To-dos due"
-                    className="text-xl leading-none"
+                    className="leading-none text-[13px] md:text-xl"
                   >
                     ✅
                   </span>
@@ -120,7 +147,7 @@ export default function CalendarMonth({
                     role="img"
                     aria-label="recurring event"
                     title="Recurring event"
-                    className="text-xl leading-none"
+                    className="leading-none text-[13px] md:text-xl"
                   >
                     🎉
                   </span>

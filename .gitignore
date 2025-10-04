@@ -42,10 +42,11 @@ next-env.d.ts
 
 /src/generated/prisma
 
-
+print-tree.mjs
 .env.local
 .env.production
 .env.supabase
 .env copy.local
 .env copy
 readme.txt
+!.env.example 
