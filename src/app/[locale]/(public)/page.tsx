@@ -1,6 +1,7 @@
 'use client';
 
-import CardSwap from "@/components/CardSwap";
+import React from 'react';
+import CardSwap from '@/components/CardSwap';
 import Link from 'next/link';
 import { useTranslations, useLocale } from '@/lib/i18n/i18n';
 
@@ -28,7 +29,7 @@ function GhostButton({
   disabled?: boolean;
 }) {
   const base =
-    "inline-flex items-center justify-center rounded-xl px-5 py-3 transition-colors";
+    'inline-flex items-center justify-center rounded-xl px-5 py-3 transition-colors';
 
   if (disabled) {
     return (
@@ -36,8 +37,8 @@ function GhostButton({
         aria-disabled="true"
         className={
           base +
-          " border border-white/20 bg-white/5 text-white/70 opacity-60 " +
-          "cursor-not-allowed pointer-events-none"
+          ' border border-white/20 bg-white/5 text-white/70 opacity-60 ' +
+          'cursor-not-allowed pointer-events-none'
         }
       >
         {children}
@@ -48,10 +49,7 @@ function GhostButton({
   return (
     <Link
       href={href!}
-      className={
-        base +
-        " border border-white/30 bg-white/5 text-white hover:bg-white/10"
-      }
+      className={base + ' border border-white/30 bg-white/5 text-white hover:bg-white/10'}
     >
       {children}
     </Link>
@@ -74,28 +72,36 @@ export default function Landing() {
   const t = useTranslations('landing');
   const locale = useLocale() || 'en';
 
-  // Bildes switcherim — pievieno vēl ierakstus, ja gribi vairāk variantu
+  // Bildes stackam
 const heroImages = [
-  { src: "/images/overview_view.png",  alt: "Overview",  width: 1200, height: 760 },
-  { src: "/images/weather_view.png",   alt: "Weather",   width: 1200, height: 760 },
-  { src: "/images/groceries_view.png", alt: "Groceries", width: 1200, height: 760 },
-];
+  {
+    src: '/images/overview_view.png',
+    alt: 'Overview',
+    width: 1200,
+    height: 760,
+    fit: 'contain',
+    zoom: 1.20,            
+    bg: '#fff',
+    padding: 0,
+  },
+ { src: '/images/weather_view.png',  alt: 'Weather',  width: 1200, height: 760 },
+  { src: '/images/groceries_view.png', alt: 'Groceries', width: 1200, height: 760 },
+] satisfies import('@/components/CardSwap').CardSwapImage[];
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-[#4f46e5] via-[#6d5ae6] to-[#8b5cf6] text-white">
       {/* HERO */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-visible">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.22),transparent_60%)]" />
         <Container>
-          {/* Mazāks vertikālais padding; uz lg joprojām plašāks */}
-          <div className="pt-6 md:pt-8 lg:pt-12 pb-10 md:pb-14 lg:pb-20 grid items-center gap-6 lg:gap-10 lg:grid-cols-2">
-            {/* Teksta kolonna */}
+          <div className="pt-6 md:pt-8 lg:pt-12 pb-10 md:pb-14 lg:pb-20
+                grid lg:grid-cols-2 gap-6 lg:gap-10 lg:min-h-[820px]">
+            {/* Teksts */}
             <div>
               <div className="mb-3 inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-sm">
                 {t('hero.eyebrow')}
               </div>
 
-              {/* H1 ar clamp, lai mobile nebūtu gigantisks */}
               <h1 className="font-extrabold leading-[1.08] text-balance text-[clamp(2rem,1.1rem+4.2vw,4rem)]">
                 {t('hero.h1')}
               </h1>
@@ -108,7 +114,7 @@ const heroImages = [
               </div>
               <p className="mt-3 text-sm text-white/70">{t('hero.noCard')}</p>
 
-              {/* Priekšrocības: 1 → 2 → 3 kolonnas */}
+              {/* Priekšrocības */}
               <div className="mt-8 grid gap-4 sm:gap-5 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
                 <BenefitCard title={t('benefits.privacy.title')} sub={t('benefits.privacy.sub')} />
                 <BenefitCard title={t('benefits.open.title')} sub={t('benefits.open.sub')} />
@@ -116,14 +122,27 @@ const heroImages = [
               </div>
             </div>
 
-            {/* Preview kolonna — slēpta uz <md, lai netaisa “tukšumu” */}
-<div className="relative hidden md:block">
-  <CardSwap
-    images={heroImages}
-    className="p-2"                 // šeit var iedot arī w-[620px] u.c.
-    buttonClassName=""             // pārraksti, ja vajag citus toņus
-  />
+{/* Preview kolonna — pilnībā redzama labajā apakšā */}
+<div className="relative hidden md:block self-end">
+  <div className="relative h-[640px] w-full">
+    <CardSwap
+      images={heroImages}
+      width={540}
+      height={340}
+      cardDistance={50}
+      verticalDistance={62}
+      delay={4200}
+      pauseOnHover
+      easing="elastic"
+      offsetY={280}
+      offsetX={60}
+      dropDistance={220}
+      className="absolute bottom-0 right-0 origin-bottom-right
+                 md:scale-[0.9] lg:scale-100 xl:scale-[1.1] 2xl:scale-[1.16]"
+    />
+  </div>
 </div>
+
           </div>
         </Container>
       </section>
@@ -131,7 +150,9 @@ const heroImages = [
       {/* FEATURES */}
       <section id="features" className="py-12 md:py-16 lg:py-24 bg-white">
         <Container>
-          <h2 className="text-3xl md:text-4xl font-bold text-neutral-900 text-center">{t('features.title')}</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-neutral-900 text-center">
+            {t('features.title')}
+          </h2>
           <p className="mt-3 text-neutral-600 text-center">{t('features.sub')}</p>
 
           <div className="mt-8 md:mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -176,11 +197,11 @@ const heroImages = [
         </Container>
       </section>
 
-      {/* TESTIMONIALS — atstāts nākotnei */}
+      {/* TESTIMONIALS */}
       <section className="py-12 md:py-16 lg:py-24 bg-white">
         <Container>
           <h2 className="text-3xl md:text-4xl font-bold text-neutral-900 text-center">{t('social.title')}</h2>
-          <div className="mt-8 md:mt-10 grid gap-6 md:grid-cols-3">
+        <div className="mt-8 md:mt-10 grid gap-6 md:grid-cols-3">
             {[
               { q: t('social.items.0.q'), a: '— Anna' },
               { q: t('social.items.1.q'), a: '— Mārtiņš' },
@@ -201,11 +222,10 @@ const heroImages = [
           <div className="rounded-3xl border border-white/20 bg-white/10 p-8 md:p-10 text-center backdrop-blur">
             <h3 className="text-2xl md:text-3xl font-bold">{t('cta.title')}</h3>
             <p className="mt-2 text-white/90">{t('cta.sub')}</p>
-           <div className="mt-6 flex justify-center gap-3">
-  <PrimaryButton href={`/${locale}/register`}>{t('cta.primary')}</PrimaryButton>
-  <GhostButton disabled>{t('cta.secondary')}</GhostButton>
-  {/* vai: <GhostButton href={`/${locale}/pricing`} disabled>…</GhostButton> */}
-</div>
+            <div className="mt-6 flex justify-center gap-3">
+              <PrimaryButton href={`/${locale}/register`}>{t('cta.primary')}</PrimaryButton>
+              <GhostButton disabled>{t('cta.secondary')}</GhostButton>
+            </div>
           </div>
         </Container>
       </section>
