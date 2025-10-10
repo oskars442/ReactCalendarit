@@ -8,14 +8,44 @@ type DayItem = { id: string; title: string };
 
 // Vienas kalendāra dienas (šūnas) datu modelis
 type Day = {
-  dateISO: string;   // datums formātā "YYYY-MM-DD" (ISO, bez laika)
-  day: number;       // dienas numurs (1..31) vizuālajam ciparam kreisajā augšējā stūrī
-  inMonth: boolean;  // vai šī šūna pieder pašreiz renderētajam mēnesim (false – iepr./nākamā mēn. “pelēkās” dienas)
-  items: DayItem[];  // darba dienasgrāmatas ieraksti konkrētajā dienā (ikonai 💼)
-  dayColor?: string; // hekskrāsa vai CSS krāsa dienas ciparam (ja iestatīta DayLog ierakstā)
-  hasTodos?: boolean;// vai šajā datumā ir neizpildīti To-Do ar termiņu (ikonai ✅)
+  dateISO: string;
+  day: number;
+  inMonth: boolean;
+  items: DayItem[];
+  dayColor?: string;
+  hasTodos?: boolean;
+  todoPriority?: "low" | "med" | "high"; // ⬅️ pievienots
 };
 
+
+function todoBorderClass(p?: "low" | "med" | "high") {
+  switch (p) {
+    case "high": return "border-rose-500";
+    case "med":  return "border-amber-500";
+    case "low":  return "border-emerald-500";
+    default:     return "border-emerald-500"; // ja nav zināms, paliek zaļš
+  }
+}
+
+function IconCircle({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <span
+      className={[
+        "inline-flex h-6 w-6 items-center justify-center rounded-full border bg-white",
+        "text-[13px] leading-none",
+        className,
+      ].join(" ")}
+    >
+      {children}
+    </span>
+  );
+}
 // ----- Galvenais mēneša režģa komponents -----
 
 export default function CalendarMonth({
@@ -61,7 +91,7 @@ export default function CalendarMonth({
 
       {/* ---------- 6x7 dienu režģis (vienmēr 42 šūnas) ---------- */}
       <div className="grid grid-cols-7 gap-0 md:gap-2">
-        {days.map(({ dateISO, day, inMonth, items, dayColor, hasTodos }, idx) => {
+        {days.map(({ dateISO, day, inMonth, items, dayColor, hasTodos, todoPriority }, idx) => {
           // aprēķinam kolonnas indeksu (0..6), lai varētu iekrāsot brīvdienu kolonnas
           const col = idx % 7;
           const isWeekendCol = col === 5 || col === 6;
@@ -132,16 +162,13 @@ export default function CalendarMonth({
                     💼
                   </span>
                 )}
-                {hasTodos && (
-                  <span
-                    role="img"
-                    aria-label="todos"
-                    title="To-dos due"
-                    className="leading-none text-[13px] md:text-xl"
-                  >
-                    ✅
-                  </span>
-                )}
+       {hasTodos && (
+  <IconCircle
+    className={todoBorderClass(todoPriority)} // ⬅️ krāsa pēc prioritātes
+  >
+    ✅
+  </IconCircle>
+)}
                 {hasRecurring && (
                   <span
                     role="img"

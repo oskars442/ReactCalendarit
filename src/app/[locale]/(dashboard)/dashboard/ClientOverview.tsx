@@ -13,13 +13,15 @@ import lvNamedays from "@/features/overview/namedays/lv_namedays.json";
 import { kindIcon } from "@/lib/eventIcons";
 
 type UiKind = keyof typeof kindIcon;
+type UiPriority = "low" | "med" | "high";
 
 type ApiItem = {
   id: string;
   title: string;
-  kind: UiKind;       // "work" | "todo" | "recurring-monthly" | "recurring-yearly"
-  dateISO: string;    // YYYY-MM-DD
-  timeHHMM?: string;  // for work (optional)
+  kind: UiKind;          // "work" | "todo" | "recurring-monthly" | "recurring-yearly"
+  dateISO: string;       // YYYY-MM-DD
+  timeHHMM?: string;     // for work (optional)
+  priority?: UiPriority; // for todo (optional but recommended)
 };
 
 /* ------------------------------- UI helpers ------------------------------- */
@@ -33,13 +35,13 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-black/5 bg-white/70 backdrop-blur shadow-sm p-5">
-      <div className="mb-4 flex items-center gap-2">
+    <section className="rounded-2xl border border-black/5 bg-white/70 backdrop-blur shadow-sm p-5">
+      <header className="mb-4 flex items-center gap-2">
         {icon}
         <h3 className="text-[17px] font-semibold">{title}</h3>
-      </div>
+      </header>
       {children}
-    </div>
+    </section>
   );
 }
 
@@ -134,7 +136,7 @@ function WeatherMini() {
   const info = getWeatherInfo(w.code, tWeather);
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3" aria-live="polite">
       <div className="flex items-center justify-between">
         <div className="font-medium">{w.city}</div>
         <Badge>{info.text}</Badge>
@@ -178,14 +180,56 @@ function WeatherMini() {
 
 /* ------------------------------ Row with icon ----------------------------- */
 type OverviewItem = ApiItem & { whenLabel?: string };
+
+function todoPriorityBorder(p?: UiPriority) {
+  switch (p) {
+    case "high":
+      return "border-rose-400/60";
+    case "med":
+      return "border-amber-400/60";
+    case "low":
+      return "border-emerald-400/60";
+    default:
+      return "border-neutral-200/60";
+  }
+}
+function todoIconBorder(p?: UiPriority) {
+  switch (p) {
+    case "high":
+      return "border-rose-500";
+    case "med":
+      return "border-amber-500";
+    case "low":
+      return "border-emerald-500";
+    default:
+      return "border-neutral-300";
+  }
+}
+
+
 function Row({ item }: { item: OverviewItem }) {
+  const isTodo = item.kind === "todo";
+  const priority = item.priority || (isTodo ? "low" : undefined);
+const borderColor = isTodo ? todoPriorityBorder(priority) : "border-neutral-200/60";
+
   return (
-    <li className="flex items-center justify-between rounded-lg bg-neutral-50 p-2">
+    <li
+      className={`flex items-center justify-between rounded-lg bg-neutral-50 p-2 border ${borderColor} transition hover:shadow-sm`}
+    >
       <div className="flex items-center gap-2 min-w-0">
-        <span className="shrink-0">{kindIcon[item.kind]}</span>
+      <span
+  className={[
+    "shrink-0 inline-flex h-6 w-6 items-center justify-center rounded-full border bg-white",
+    item.kind === "todo" ? todoIconBorder(item.priority) : "border-neutral-300",
+  ].join(" ")}
+>
+  <span className="leading-none text-[15px]">{kindIcon[item.kind]}</span>
+</span>
         <span className="font-medium truncate">{item.title}</span>
       </div>
-      {item.whenLabel ? <Badge>{item.whenLabel}</Badge> : null}
+      {item.whenLabel ? (
+        <Badge>{item.whenLabel}</Badge>
+      ) : null}
     </li>
   );
 }
@@ -206,8 +250,8 @@ export default function ClientOverview() {
   const locale = useLocale() || "lv";
 
   // Today (local)
-  const todayDate = new Date();
-  const todayISO = toISO(todayDate) as ISODate;
+  const todayDate = useMemo(() => new Date(), []);
+  const todayISO = useMemo(() => toISO(todayDate) as ISODate, [todayDate]);
   const todayNum = todayDate.getDate();
   const weekday = new Intl.DateTimeFormat(locale, { weekday: "long" }).format(todayDate);
   const dateLabel = new Intl.DateTimeFormat(locale, {
@@ -271,12 +315,21 @@ export default function ClientOverview() {
   }, []);
 
   // ---------------- Rolling windows (exclusive) ----------------
-  const next7ISO  = toISO(addDays(todayDate, 7));
-  const next30ISO = toISO(addDays(todayDate, 30));
+  const next7ISO  = useMemo(() => toISO(addDays(todayDate, 7)), [todayDate]);
+  const next30ISO = useMemo(() => toISO(addDays(todayDate, 30)), [todayDate]);
 
-  const todays = all.filter(i => i.dateISO === todayISO);
-  const next7  = all.filter(i => i.dateISO > todayISO && i.dateISO <= next7ISO);
-  const next30 = all.filter(i => i.dateISO > next7ISO && i.dateISO <= next30ISO);
+  const todays = useMemo(
+    () => all.filter(i => i.dateISO === todayISO),
+    [all, todayISO]
+  );
+  const next7  = useMemo(
+    () => all.filter(i => i.dateISO > todayISO && i.dateISO <= next7ISO),
+    [all, todayISO, next7ISO]
+  );
+  const next30 = useMemo(
+    () => all.filter(i => i.dateISO > next7ISO && i.dateISO <= next30ISO),
+    [all, next7ISO, next30ISO]
+  );
 
   // Labels
   const fmt7Badge = (iso: string) => {
@@ -291,25 +344,37 @@ export default function ClientOverview() {
     return `${day}.${mon}`;
   };
 
-  const todayRows: OverviewItem[] = todays
-    .sort((a, b) => (a.timeHHMM ?? "").localeCompare(b.timeHHMM ?? "")) // time first
-    .map((i) => ({
-      ...i,
-      whenLabel:
-        i.kind === "work" && i.timeHHMM
-          ? i.timeHHMM
-          : i.kind === "todo"
-          ? tTodo("due.label")
-          : undefined,
-    }));
+  const todayRows: OverviewItem[] = useMemo(
+    () =>
+      todays
+        .sort((a, b) => (a.timeHHMM ?? "").localeCompare(b.timeHHMM ?? "")) // time first
+        .map((i) => ({
+          ...i,
+          whenLabel:
+            i.kind === "work" && i.timeHHMM
+              ? i.timeHHMM
+              : i.kind === "todo"
+              ? tTodo("due.label")
+              : undefined,
+        })),
+    [todays, tTodo]
+  );
 
-  const weekRows: OverviewItem[] = next7
-    .sort((a, b) => a.dateISO.localeCompare(b.dateISO))
-    .map((i) => ({ ...i, whenLabel: fmt7Badge(i.dateISO) }));
+  const weekRows: OverviewItem[] = useMemo(
+    () =>
+      next7
+        .sort((a, b) => a.dateISO.localeCompare(b.dateISO))
+        .map((i) => ({ ...i, whenLabel: fmt7Badge(i.dateISO) })),
+    [next7]
+  );
 
-  const monthRows: OverviewItem[] = next30
-    .sort((a, b) => a.dateISO.localeCompare(b.dateISO))
-    .map((i) => ({ ...i, whenLabel: fmt30Badge(i.dateISO) }));
+  const monthRows: OverviewItem[] = useMemo(
+    () =>
+      next30
+        .sort((a, b) => a.dateISO.localeCompare(b.dateISO))
+        .map((i) => ({ ...i, whenLabel: fmt30Badge(i.dateISO) })),
+    [next30]
+  );
 
   // Nameday & Quote
   const quote = useMemo(() => quoteOfTheDay(locale), [locale]);
@@ -329,7 +394,10 @@ export default function ClientOverview() {
           aria-label="Open today's day log"
           className="group relative flex flex-col justify-center rounded-2xl border-2 border-sky-500 bg-white shadow-sm w-32 sm:w-40 h-24 px-3 py-2 hover:bg-sky-50 focus:outline-none md:justify-self-center"
         >
-          <span className="text-4xl sm:text-5xl font-semibold leading-none" style={{ color: todayColor ?? "#0284c7" }}>
+          <span
+            className="text-4xl sm:text-5xl font-semibold leading-none"
+            style={{ color: todayColor ?? "#0284c7" }}
+          >
             {todayNum}
           </span>
           <span className="text-sm sm:text-base text-neutral-600 capitalize">{weekday}</span>

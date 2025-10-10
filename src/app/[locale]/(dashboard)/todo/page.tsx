@@ -142,21 +142,6 @@ export default function TodoPage() {
     if (!loading) saveLS(tasks);
   }, [tasks, loading]);
 
-  /* Keyboard shortcuts */
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "n" && !e.metaKey && !e.ctrlKey && !e.altKey)
-        inputRef.current?.focus();
-      if (e.key === "/" && !e.metaKey && !e.ctrlKey) {
-        e.preventDefault();
-        (document.getElementById("todo-search") as HTMLInputElement)?.focus();
-      }
-      if (e.key === "a" && !e.metaKey && !e.ctrlKey)
-        setShowCompleted((s) => !s);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
 
   // Safer display: add noon to dodge DST edges
   const formatDue = (iso?: string) =>
@@ -321,6 +306,28 @@ export default function TodoPage() {
     }
   }
 
+function priorityActiveStyles(p: Priority) {
+  switch (p) {
+    case "high":
+      return "bg-rose-500/15 ring-2 ring-rose-400/50";
+    case "med":
+      return "bg-amber-500/15 ring-2 ring-amber-400/50";
+    default:
+      return "bg-emerald-500/15 ring-2 ring-emerald-400/50";
+  }
+}
+
+function priorityBorder(p: Priority, active: boolean) {
+  switch (p) {
+    case "high":
+      return active ? "border-rose-500" : "border-rose-500/60";
+    case "med":
+      return active ? "border-amber-500" : "border-amber-500/60";
+    default:
+      return active ? "border-emerald-500" : "border-emerald-500/60";
+  }
+}
+
   /* ---------- Render ---------- */
   if (loading) {
     return (
@@ -383,13 +390,15 @@ export default function TodoPage() {
                 <button
                   key={p}
                   onClick={() => setPriority(p)}
-                  className={classNames(
-                    "rounded-lg border px-2.5 py-2 text-sm capitalize transition",
-                    priority === p
-                      ? "border-transparent ring-2 ring-cyan-400/40 " +
-                          priorityTheme(p)
-                      : "border-neutral-200/70 hover:bg-neutral-50/50 dark:border-neutral-800 dark:hover:bg-neutral-800/40"
-                  )}
+                className={classNames(
+  "rounded-lg border px-2.5 py-2 text-sm capitalize transition",
+  priorityBorder(p, priority === p),
+  priority === p
+    ? `${priorityActiveStyles(p)}`
+    : "hover:bg-neutral-50/50 dark:hover:bg-neutral-800/40",
+  // Teksts vienmēr melns (un gaišs dark režīmā, ja vajag)
+  "text-neutral-900 dark:text-neutral-100"
+)}
                 >
                   {t(`priority.${p}`)}
                 </button>

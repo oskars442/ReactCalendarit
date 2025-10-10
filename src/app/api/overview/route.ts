@@ -14,10 +14,19 @@ function toHHMMLocal(d: Date): string {
   return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false });
 }
 
+// 🔸 PRIORITY normalizer: Prisma var atdot 'LOW'/'MED'/'HIGH' vai 'low'/'med'/'high'
+type UiPriority = "low" | "med" | "high";
+function toUiPriority(p: unknown): UiPriority {
+  const s = String(p ?? "").toLowerCase();
+  if (s.startsWith("h")) return "high";
+  if (s.startsWith("l")) return "low";
+  return "med";
+}
+
 /* ------------------------------- types ----------------------------- */
 type Item =
   | { kind: "work"; id: string; title: string; dateISO: string; timeHHMM?: string }
-  | { kind: "todo"; id: string; title: string; dateISO: string }
+  | { kind: "todo"; id: string; title: string; dateISO: string; priority: UiPriority } // ⬅️ pievienots priority
   | { kind: "recurring-monthly"; id: string; title: string; dateISO: string }
   | { kind: "recurring-yearly"; id: string; title: string; dateISO: string };
 
@@ -65,7 +74,8 @@ export async function GET(req: NextRequest) {
   const todos: Item[] = await prisma.todoItem
     .findMany({
       where: { ...userFilter, done: false, due: { gte: start, lte: end } },
-      select: { id: true, title: true, due: true },
+      // ⬇️ pievieno "priority" laukam select
+      select: { id: true, title: true, due: true, priority: true },
       orderBy: { due: "asc" },
     })
     .then((rows) =>
@@ -76,6 +86,7 @@ export async function GET(req: NextRequest) {
           id: String(r.id),
           title: r.title ?? "(untitled)",
           dateISO: toISODateLocal(r.due as Date),
+          priority: toUiPriority(r.priority), // ⬅️ normalizē līdz "low|med|high"
         }))
     );
 

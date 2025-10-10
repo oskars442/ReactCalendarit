@@ -105,26 +105,38 @@ export default async function CalendarPage({
 
   /* ---------------- To-dos ar termiņu dienā (bloknota ikona) ---------------- */
   // Nolasa neizpildītos uzdevumus, kuru termiņš ir šajā mēnesī
-  let todoDates = new Set<string>();
-  try {
-    const todos = await prisma.todoItem.findMany({
-      where: {
-        ...(userId ? { userId } : {}),
-        done: false,                               // tikai neizpildītie
-        due: { gte: start, lte: end },             // tikai ar termiņu šajā mēnesī
-      },
-      select: { due: true },
-    });
-    // Izvelkam visu “due” datumu ISO virknēs (YYYY-MM-DD) un ieliekam Set
-    todoDates = new Set(
-      todos
-        .map((t) => (t.due ? new Date(t.due) : null))
-        .filter(Boolean)
-        .map((d) => (d as Date).toISOString().slice(0, 10))
-    );
-  } catch {
-    todoDates = new Set();
+let todoDates = new Set<string>();
+let todoPriorityByDate = new Map<string, "low" | "med" | "high">();
+
+try {
+  const todos = await prisma.todoItem.findMany({
+    where: {
+      ...(userId ? { userId } : {}),
+      done: false,
+      due: { gte: start, lte: end },
+    },
+    select: { due: true, priority: true }, // ⬅️ paņemam arī prioritāti
+  });
+
+  // helper: paaugstinām prioritāti, ja dienā ir vairāki todo
+  const rank = (p?: string) => (String(p).toLowerCase().startsWith("h") ? 3
+                      : String(p).toLowerCase().startsWith("m") ? 2 : 1);
+
+  for (const t of todos) {
+    if (!t.due) continue;
+    const iso = new Date(t.due).toISOString().slice(0, 10);
+    todoDates.add(iso);
+
+    const prev = todoPriorityByDate.get(iso);
+    const cur  = (String(t.priority || "med").toLowerCase() as "low" | "med" | "high");
+    if (!prev || rank(cur) > rank(prev)) {
+      todoPriorityByDate.set(iso, cur);
+    }
   }
+} catch {
+  todoDates = new Set();
+  todoPriorityByDate = new Map();
+}
 
   /* ---------------- 6x7 kalendāra režģa uzbūve ---------------- */
   // Režģis vienmēr ir 42 šūnas (6 nedēļas x 7 dienas).
@@ -151,9 +163,9 @@ export default async function CalendarPage({
     const dayColor = colorMap.get(dateISO);
     // Vai šai dienai ir kāds neizpildīts To-Do ar termiņu tajā datumā
     const hasTodos = todoDates.has(dateISO);
-
+const todoPriority = todoPriorityByDate.get(dateISO); // ⬅️ var būt undefined
     // DTO vienas šūnas uzzīmēšanai komponentā
-    return { dateISO, day, inMonth, items, dayColor, hasTodos };
+    return { dateISO, day, inMonth, items, dayColor, hasTodos, todoPriority };
   });
 
   // Nedēļas dienu īsie nosaukumi (Pirmd., Otrd., …), sākot no pirmdienas

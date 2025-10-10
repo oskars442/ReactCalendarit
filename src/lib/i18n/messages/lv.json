@@ -286,8 +286,8 @@
     "progress": "{done}/{total} izpildīti",
     "addTask": {
       "label": "Pievienot uzdevumu",
-      "placeholder": "Raksti un spied Enter…",
-      "tip": "Padoms: **Shift+Enter**, lai vispirms pievienotu piezīmes.",
+      "placeholder": "Ieraksti uzdevumu šeit…",
+      "tip": "",
       "button": "Pievienot",
       "buttonAria": "Pievienot uzdevumu"
     },
@@ -303,7 +303,7 @@
     },
     "notes": {
       "label": "Piezīmes",
-      "placeholder": "Neobligāti… (Shift+Enter, lai pievienotu)"
+      "placeholder": "Neobligāti…"
     },
     "filters": {
       "all": "Visi",
@@ -512,5 +512,78 @@
       "button": "Sazināties",
       "aria": "Atvērt e-pastu saziņai ar CalendarIt"
     }
+  },
+   "workout": {
+    "title": "Treniņi",
+    "subtitle": "Pieraksti savas dienas aktivitātes ar atbilstošiem laukiem katram sporta veidam.",
+    "quickLog": { "title": "Ātrais ieraksts", "subtitle": "Pievieno treniņu izvēlētajai dienai." },
+    "yourWorkouts": "Tavi treniņi",
+    "loading": "Ielādē…",
+    "noWorkouts": "Pagaidām nav ierakstu",
+    "items": "{count} ieraksts(i)",
+    "emptyState": "Šajā dienā nekas nav pierakstīts. Pamēģini pievienot ātro sesiju augstāk.",
+    "thisWeek": "Šonedēļ",
+    "minutesPerDay": "Minūtes dienā",
+    "templates": { "title": "Sagataves", "subtitle": "Ātrākai pierakstīšanai", "hintLater": "(Pieslēgsim īstajām sagatavēm vēlāk)" },
+
+    "fields": {
+      "type": "Tips",
+      "duration": "Ilgums (min)",
+      "distance": "Distance (km)",
+      "notes": "Piezīmes",
+      "rpe": "Pūles (RPE 1–10)",
+      "rpeShort": "Pūles (RPE)",
+      "sets": "Sērijas",
+      "setsShort": "Sērijas",
+      "reps": "Atkārtojumi",
+      "kg": "kg"
+    },
+
+    "kinds": {
+      "run": "Skriešana",
+      "walk": "Pastaiga",
+      "ride": "Riteņbraukšana",
+      "swim": "Peldēšana",
+      "strength": "Spēka treniņš",
+      "yoga": "Jogas sesija",
+      "other": "Cits"
+    },
+
+    "optional": "pēc izvēles",
+    "noSetsYet": "Vēl nav nevienas sērijas. Pievieno pirmo.",
+    "placeholders": {
+      "exercise": "Vingrinājums (piem., Pietupiens)",
+      "strength": "Krūtis jūtas spēcīgi, pauzētie atkārtojumi…",
+      "cardio": "Ļoti viegli, patīkams temps…"
+    },
+
+    "actions": {
+      "addSet": "Pievienot sēriju",
+      "remove": "Noņemt",
+      "saveWorkout": "Saglabāt treniņu",
+      "reset": "Atstatīt",
+      "toggleRpe": "Pārslēgt RPE",
+      "edit": "Rediģēt",
+      "delete": "Dzēst",
+      "cancel": "Atcelt",
+      "saveChanges": "Saglabāt izmaiņas"
+    },
+
+    "prevDay": "Iepriekšējā diena",
+    "nextDay": "Nākamā diena",
+    "today": "Šodien",
+    "totalTime": "Kopējais laiks",
+    "totalDistance": "Kopējā distance",
+    "rpeShort": "RPE",
+    "setsShortSuffix": "sērija(s)",
+    "kg": "kg",
+
+    "mins": "{value} min",
+    "kms": "{value} km",
+
+    "weekdays": { "mon": "Pr", "tue": "Ot", "wed": "Tr", "thu": "Ce", "fri": "Pk", "sat": "Se", "sun": "Sv" },
+
+    "editWorkout": "Rediģēt treniņu",
+    "tpl": { "easy5k": "5K viegla skriešana", "push45": "Push diena 45m", "yoga30": "Joga 30m" }
   }
 }

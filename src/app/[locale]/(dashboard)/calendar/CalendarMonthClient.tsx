@@ -14,6 +14,7 @@ export type DayDTO = {
   items: DayItem[];      // work-diary items (we’ll render as a briefcase only)
   dayColor?: string;
   hasTodos?: boolean;
+  todoPriority?: "low" | "med" | "high"; // ⬅️ jauns lauks
 };
 
 export default function CalendarMonthClient({

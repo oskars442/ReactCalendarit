@@ -285,8 +285,8 @@
     "progress": "{done}/{total} done",
     "addTask": {
       "label": "Add task",
-      "placeholder": "Type and press Enter…",
-      "tip": "Tip: **Shift+Enter** to keep typing notes first.",
+      "placeholder": "Type To-Do here",
+      "tip": "",
       "button": "Add",
       "buttonAria": "Add task"
     },
@@ -302,7 +302,7 @@
     },
     "notes": {
       "label": "Notes",
-      "placeholder": "Optional… (Shift+Enter to add)"
+      "placeholder": "Optional…"
     },
     "filters": {
       "all": "All",
@@ -537,5 +537,78 @@
       "button": "Contact us",
       "aria": "Open email to contact CalendarIt"
     }
+  },
+  "workout": {
+    "title": "Workout",
+    "subtitle": "Log your daily activities with the right fields per sport.",
+    "quickLog": { "title": "Quick log", "subtitle": "Add a workout for the selected day." },
+    "yourWorkouts": "Your workouts",
+    "loading": "Loading…",
+    "noWorkouts": "No workouts yet",
+    "items": "{count} item(s)",
+    "emptyState": "Nothing logged for this day. Try adding a quick session above.",
+    "thisWeek": "This week",
+    "minutesPerDay": "Minutes per day",
+    "templates": { "title": "Templates", "subtitle": "Speed up logging", "hintLater": "(Connect to real templates later)" },
+
+    "fields": {
+      "type": "Type",
+      "duration": "Duration (min)",
+      "distance": "Distance (km)",
+      "notes": "Notes",
+      "rpe": "Effort (RPE 1–10)",
+      "rpeShort": "Effort (RPE)",
+      "sets": "Sets",
+      "setsShort": "Sets",
+      "reps": "Reps",
+      "kg": "kg"
+    },
+
+    "kinds": {
+      "run": "Running",
+      "walk": "Walking",
+      "ride": "Cycling",
+      "swim": "Swimming",
+      "strength": "Strength",
+      "yoga": "Yoga",
+      "other": "Other"
+    },
+
+    "optional": "optional",
+    "noSetsYet": "No sets yet. Add your first one.",
+    "placeholders": {
+      "exercise": "Exercise (e.g., Squat)",
+      "strength": "Chest felt strong, paused reps…",
+      "cardio": "Felt great, easy pace…"
+    },
+
+    "actions": {
+      "addSet": "Add set",
+      "remove": "Remove",
+      "saveWorkout": "Save workout",
+      "reset": "Reset",
+      "toggleRpe": "Toggle RPE",
+      "edit": "Edit",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "saveChanges": "Save changes"
+    },
+
+    "prevDay": "Previous day",
+    "nextDay": "Next day",
+    "today": "Today",
+    "totalTime": "Total time",
+    "totalDistance": "Total distance",
+    "rpeShort": "RPE",
+    "setsShortSuffix": "set(s)",
+    "kg": "kg",
+
+    "mins": "{value} min",
+    "kms": "{value} km",
+
+    "weekdays": { "mon": "Mon", "tue": "Tue", "wed": "Wed", "thu": "Thu", "fri": "Fri", "sat": "Sat", "sun": "Sun" },
+
+    "editWorkout": "Edit workout",
+    "tpl": { "easy5k": "5K Easy Run", "push45": "Push Day 45m", "yoga30": "Yoga Flow 30m" }
   }
 }
