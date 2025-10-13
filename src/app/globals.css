@@ -46,6 +46,8 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+
+
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
@@ -137,4 +139,9 @@
 .select-dark option {
   background: #0b0d22; /* same hue as your auth pages */
   color: #fff;
+}
+@layer utilities {
+  .cursor-no-red-xs {
+    cursor: url("data:image/svg+xml;utf8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='16'%20height='16'%20viewBox='0%200%2016%2016'%3E%3Ccircle%20cx='8'%20cy='8'%20r='6.5'%20fill='none'%20stroke='%23ff2d55'%20stroke-width='2'/%3E%3Cline%20x1='4'%20y1='12'%20x2='12'%20y2='4'%20stroke='%23ff2d55'%20stroke-width='2'/%3E%3C/svg%3E") 8 8, not-allowed !important;
+  }
 }

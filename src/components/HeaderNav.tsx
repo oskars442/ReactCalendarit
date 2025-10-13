@@ -1,4 +1,3 @@
-// src/components/HeaderNav.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -89,6 +88,7 @@ export default function HeaderNav({
     "admin",
     "suggestions",
     "workout",
+    "projects",
   ]);
   const isDashboardArea = DASHBOARD_SEGS.has(seg1);
 
@@ -114,14 +114,17 @@ export default function HeaderNav({
   const loginCls = "text-white/90 hover:text-white";
   const ctaCls = "rounded-xl px-4 py-2 font-semibold bg-white text-indigo-700 hover:bg-white/90";
 
-  // ---- Disabled items helpers (suggestions, pricing) ----
-  const DISABLED_SEGS = new Set(["pricing"]);
+  // ---- Disabled items helpers (public top-nav) ----
+  const DISABLED_SEGS_PUBLIC = new Set(["pricing"]); // paliek kā bija
   const isDisabledHref = (href: string) => {
     const lastSeg = href.split("/").filter(Boolean).pop();
-    return !!lastSeg && DISABLED_SEGS.has(lastSeg);
+    return !!lastSeg && DISABLED_SEGS_PUBLIC.has(lastSeg);
   };
-  const disabledLinkCls =
-    "cursor-not-allowed opacity-60 text-white/70 select-none";
+const disabledLinkCls =
+  "opacity-60 text-white/70 select-none cursor-no-red-xs";
+
+  // ---- Disabled items helpers (APP menu: stats + projects) ----
+  const DISABLED_SEGS_APP = new Set<string>(["stats", "projects"]);
 
   function changeLocale(next: Locale) {
     router.push(withLocale(pathname, next));
@@ -293,7 +296,7 @@ export default function HeaderNav({
         </div>
       )}
 
-      {/* Public slide-over App menu (unchanged) */}
+      {/* Public slide-over App menu (unchanged except disabled items) */}
       {sidebarSheet && (
         <div className="fixed inset-0 z-[90]">
           {/* Backdrop */}
@@ -339,21 +342,40 @@ export default function HeaderNav({
                   { segment: "groceries", key: "groceries" },
                   { segment: "weather", key: "weather" },
                   { segment: "stats", key: "stats" },
+                  { segment: "projects", key: "projects" },
                 ].map(({ segment, key }) => {
                   const href = `/${locale}/${segment}`;
                   const active = pathname === href || pathname.startsWith(href + "/");
+                  const disabled = DISABLED_SEGS_APP.has(segment);
+
+                  const baseCls =
+                    "flex h-12 items-center rounded-md px-3 text-[16px] transition-colors";
+                  const enabledCls = active
+                    ? "bg-neutral-100 font-semibold text-neutral-900"
+                    : "text-neutral-700 hover:bg-neutral-50";
+                  const disabledCls =
+  "text-neutral-400 opacity-60 select-none cursor-no-red-xs";
+
+                  if (disabled) {
+                    return (
+                      <span
+                        key={segment}
+                        aria-disabled="true"
+                        title="Drīzumā"
+                        className={`${baseCls} ${disabledCls}`}
+                      >
+                        {tNav(key)}
+                      </span>
+                    );
+                  }
+
                   return (
                     <Link
                       key={segment}
                       href={href}
                       onClick={() => setSidebarSheet(false)}
                       aria-current={active ? "page" : undefined}
-                      className={`flex h-12 items-center rounded-md px-3 text-[16px] transition-colors
-                  ${
-                    active
-                      ? "bg-neutral-100 font-semibold text-neutral-900"
-                      : "text-neutral-700 hover:bg-neutral-50"
-                  }`}
+                      className={`${baseCls} ${enabledCls}`}
                     >
                       {tNav(key)}
                     </Link>

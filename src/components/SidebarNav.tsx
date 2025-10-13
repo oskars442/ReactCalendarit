@@ -19,7 +19,11 @@ const items: Item[] = [
   { segment: "groceries",  key: "groceries" },
   { segment: "weather",    key: "weather" },
   { segment: "stats",      key: "stats" },
+  { segment: "projects",   key: "projects" },
 ];
+
+// === DISABLED sadaļas dashboard navigācijai ===
+const DISABLED_SEGS_APP = new Set<string>(["stats", "projects"]);
 
 export default function SidebarNav() {
   const pathname = usePathname() || "/";
@@ -91,16 +95,35 @@ export default function SidebarNav() {
       {items.map(({ segment, key }) => {
         const href = `${base}/${segment}`;
         const active = cleanPath === href || cleanPath.startsWith(href + "/");
+        const disabled = DISABLED_SEGS_APP.has(segment);
+
+        const baseCls =
+          "flex h-10 items-center rounded-md px-3 text-[15px] transition-colors outline-none";
+        const enabledCls = active
+          ? "bg-neutral-100 font-semibold text-neutral-900"
+          : "text-neutral-700 hover:bg-neutral-50 focus:bg-neutral-50";
+       const disabledCls = "text-neutral-400 opacity-60 select-none cursor-no-red-xs";
+
+        if (disabled) {
+          return (
+            <span
+              key={segment}
+              aria-disabled="true"
+              title="Drīzumā"
+              className={`${baseCls} ${disabledCls}`}
+            >
+              {t(key)}
+            </span>
+          );
+        }
+
         return (
           <Link
             key={segment}
             href={href}
             aria-current={active ? "page" : undefined}
             onClick={() => setOpen(false)} // mobilajā pēc klikšķa aizveram
-            className={`flex h-10 items-center rounded-md px-3 text-[15px] transition-colors outline-none
-              ${active
-                ? "bg-neutral-100 font-semibold text-neutral-900"
-                : "text-neutral-700 hover:bg-neutral-50 focus:bg-neutral-50"}`}
+            className={`${baseCls} ${enabledCls}`}
           >
             {t(key)}
           </Link>

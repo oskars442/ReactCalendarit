@@ -142,7 +142,6 @@ export default function TodoPage() {
     if (!loading) saveLS(tasks);
   }, [tasks, loading]);
 
-
   // Safer display: add noon to dodge DST edges
   const formatDue = (iso?: string) =>
     iso
@@ -306,27 +305,27 @@ export default function TodoPage() {
     }
   }
 
-function priorityActiveStyles(p: Priority) {
-  switch (p) {
-    case "high":
-      return "bg-rose-500/15 ring-2 ring-rose-400/50";
-    case "med":
-      return "bg-amber-500/15 ring-2 ring-amber-400/50";
-    default:
-      return "bg-emerald-500/15 ring-2 ring-emerald-400/50";
+  function priorityActiveStyles(p: Priority) {
+    switch (p) {
+      case "high":
+        return "bg-rose-500/15 ring-2 ring-rose-400/50";
+      case "med":
+        return "bg-amber-500/15 ring-2 ring-amber-400/50";
+      default:
+        return "bg-emerald-500/15 ring-2 ring-emerald-400/50";
+    }
   }
-}
 
-function priorityBorder(p: Priority, active: boolean) {
-  switch (p) {
-    case "high":
-      return active ? "border-rose-500" : "border-rose-500/60";
-    case "med":
-      return active ? "border-amber-500" : "border-amber-500/60";
-    default:
-      return active ? "border-emerald-500" : "border-emerald-500/60";
+  function priorityBorder(p: Priority, active: boolean) {
+    switch (p) {
+      case "high":
+        return active ? "border-rose-500" : "border-rose-500/60";
+      case "med":
+        return active ? "border-amber-500" : "border-amber-500/60";
+      default:
+        return active ? "border-emerald-500" : "border-emerald-500/60";
+    }
   }
-}
 
   /* ---------- Render ---------- */
   if (loading) {
@@ -390,15 +389,15 @@ function priorityBorder(p: Priority, active: boolean) {
                 <button
                   key={p}
                   onClick={() => setPriority(p)}
-                className={classNames(
-  "rounded-lg border px-2.5 py-2 text-sm capitalize transition",
-  priorityBorder(p, priority === p),
-  priority === p
-    ? `${priorityActiveStyles(p)}`
-    : "hover:bg-neutral-50/50 dark:hover:bg-neutral-800/40",
-  // Teksts vienmēr melns (un gaišs dark režīmā, ja vajag)
-  "text-neutral-900 dark:text-neutral-100"
-)}
+                  className={classNames(
+                    "rounded-lg border px-2.5 py-2 text-sm capitalize transition",
+                    priorityBorder(p, priority === p),
+                    priority === p
+                      ? `${priorityActiveStyles(p)}`
+                      : "hover:bg-neutral-50/50 dark:hover:bg-neutral-800/40",
+                    // Teksts vienmēr melns (un gaišs dark režīmā, ja vajag)
+                    "text-neutral-900 dark:text-neutral-100"
+                  )}
                 >
                   {t(`priority.${p}`)}
                 </button>
@@ -430,7 +429,7 @@ function priorityBorder(p: Priority, active: boolean) {
               }}
               rows={1}
               placeholder={t("notes.placeholder")}
-              className="mt-1 w-full resize-y rounded-xl border border-neutral-200/60 bg-white/70 px-3.5 py-2.5 outline-none ring-cyan-400/40 focus:ring-2 dark:border-neutral-800/80 dark:bg-neutral-900"
+              className="mt-1 w-full resize-y rounded-xl border border-neutral-200/60 bg-white/70 px-3.5 py-2.5 outline-none ring-cyan-400/40 focus:ring-2 dark:border-neutral-800/80 dark:bg-neutral-900 [overflow-wrap:anywhere] break-words"
             />
           </div>
 
@@ -497,85 +496,90 @@ function priorityBorder(p: Priority, active: boolean) {
       </section>
 
       {/* Task list */}
-      <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4 lg:grid-cols-3">
+      <ul className="mt-2 flex flex-col gap-3">
         {filtered.map((ti) => (
-          <li
-            key={ti.id}
-            className={classNames(
-              "group relative rounded-2xl border border-neutral-200/60 bg-white/70 p-4 backdrop-blur transition hover:shadow-md dark:border-neutral-800/80 dark:bg-neutral-900/60",
-              ti.done && "opacity-70"
-            )}
-          >
-            <div className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                checked={ti.done}
-                onChange={() => toggleDone(ti.id)}
-                className="mt-1 h-5 w-5 accent-emerald-500"
-                aria-label={t("aria.toggleComplete")}
-              />
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2 min-w-0">
-                  <h3
-                    className={classNames(
-                      "break-words font-semibold leading-6",
-                      ti.done && "line-through"
-                    )}
-                  >
-                    {ti.title}
-                  </h3>
-                  <span
-                    className={classNames(
-                      "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ring-1",
-                      priorityTheme(ti.priority)
-                    )}
-                  >
-                    {t(`priority.${ti.priority}`)}
-                  </span>
-                  {ti.due && (
-                    <span
-                      className={classNames(
-                        "ml-auto rounded-full px-2 py-0.5 text-xs ring-1",
-                        isToday(ti.due)
-                          ? "bg-sky-500/10 text-sky-600 ring-sky-400/30 dark:text-sky-300"
-                          : isUpcoming(ti.due)
-                          ? "bg-violet-500/10 text-violet-600 ring-violet-400/30 dark:text-violet-300"
-                          : "bg-neutral-500/10 text-neutral-600 ring-neutral-300/40 dark:text-neutral-300"
-                      )}
-                      title={ti.due}
-                    >
-                      {t("due.badge", { date: formatDue(ti.due) })}
-                    </span>
-                  )}
-                </div>
+        <li
+  key={ti.id}
+  className={classNames(
+    "overflow-hidden rounded-2xl border border-neutral-200/60 bg-white/70 p-4 backdrop-blur transition hover:shadow-sm dark:border-neutral-800/80 dark:bg-neutral-900/60",
+    ti.done && "opacity-70"
+  )}
+>
+  <div className="flex flex-col gap-1.5 min-w-0">
+    {/* 1. rinda: checkbox, prioritāte, termiņš, labajā pusē pogas */}
+    <div className="flex items-center gap-2 flex-wrap">
+      <input
+        type="checkbox"
+        checked={ti.done}
+        onChange={() => toggleDone(ti.id)}
+        className="h-5 w-5 accent-emerald-500"
+        aria-label={t("aria.toggleComplete")}
+      />
 
-                {ti.note && (
-                  <p className="mt-1 whitespace-pre-wrap text-sm text-neutral-600 dark:text-neutral-300">
-                    {ti.note}
-                  </p>
-                )}
+      {/* prioritāte */}
+      <span
+        className={classNames(
+          "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ring-1",
+          priorityTheme(ti.priority)
+        )}
+      >
+        {t(`priority.${ti.priority}`)}
+      </span>
 
-                <div className="mt-3 flex items-center gap-2">
-                  <button
-                    onClick={() => setEditing(ti)}
-                    className="rounded-lg border border-neutral-200 px-2.5 py-1 text-sm hover:bg-neutral-100/60 dark:border-neutral-800 dark:hover:bg-neutral-800/40"
-                  >
-                    {t("actions.edit")}
-                  </button>
-                  <button
-                    onClick={() => removeTask(ti.id)}
-                    className="rounded-lg border border-neutral-200 px-2.5 py-1 text-sm hover:bg-rose-500/10 dark:border-neutral-800"
-                  >
-                    {t("actions.delete")}
-                  </button>
-                </div>
-              </div>
-            </div>
+      {/* termiņš — uzreiz aiz prioritātes */}
+      {ti.due && (
+        <span
+          className={classNames(
+            "rounded-full px-2 py-0.5 text-xs ring-1",
+            isToday(ti.due)
+              ? "bg-sky-500/10 text-sky-600 ring-sky-400/30 dark:text-sky-300"
+              : isUpcoming(ti.due)
+              ? "bg-violet-500/10 text-violet-600 ring-violet-400/30 dark:text-violet-300"
+              : "bg-neutral-500/10 text-neutral-600 ring-neutral-300/40 dark:text-neutral-300"
+          )}
+          title={ti.due}
+        >
+          {t("due.badge", { date: formatDue(ti.due) })}
+        </span>
+      )}
 
-            <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition group-hover:opacity-100">
-              <div className="absolute -inset-1 rounded-3xl bg-gradient-to-br from-white/10 to-transparent" />
-            </div>
-          </li>
+      {/* labā puse: pogas */}
+      <div className="ml-auto flex items-center gap-2 shrink-0">
+        <button
+          onClick={() => setEditing(ti)}
+          className="rounded-lg border border-neutral-200 px-2.5 py-1 text-sm hover:bg-neutral-100/60 dark:border-neutral-800 dark:hover:bg-neutral-800/40"
+        >
+          {t("actions.edit")}
+        </button>
+        <button
+          onClick={() => removeTask(ti.id)}
+          className="rounded-lg border border-neutral-200 px-2.5 py-1 text-sm hover:bg-rose-500/10 dark:border-neutral-800"
+        >
+          {t("actions.delete")}
+        </button>
+      </div>
+    </div>
+
+    {/* 2. rinda: virsraksts */}
+    <h3
+      className={classNames(
+        "mt-0.5 font-semibold leading-6 flex-1 min-w-0 max-w-full break-words [overflow-wrap:anywhere] [word-break:break-word]",
+        ti.done && "line-through"
+      )}
+    >
+      {ti.title}
+    </h3>
+
+    {/* 3. rinda: piezīmes */}
+    {ti.note && (
+      <p className="mt-1 whitespace-pre-wrap text-sm text-neutral-600 dark:text-neutral-300 [overflow-wrap:anywhere] break-words">
+        {ti.note}
+      </p>
+    )}
+  </div>
+</li>
+
+
         ))}
       </ul>
 
