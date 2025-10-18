@@ -1,4 +1,4 @@
-// src/app/[locale]/(dashboard)/suggestions/SuggestionsForm.tsx
+// src/app/[locale]/(public)/suggestions/SuggestionsForm.tsx   ← pārvieto uz (public)
 "use client";
 
 import { useMemo, useRef, useState } from "react";
@@ -16,8 +16,8 @@ const MIN_LEN = 10;
 const MAX_LEN = 2000;
 
 export default function SuggestionsForm() {
-  const t = useTranslations("suggestions.form");
-  const { mutate } = useSWRConfig(); 
+  const t = useTranslations("suggestions.form"); // namespace pareizs
+  const { mutate } = useSWRConfig();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -70,11 +70,6 @@ export default function SuggestionsForm() {
 
     // anti-spam honeypot (slēpts lauks; ja aizpildīts — nepiegādāsim)
     const honeypot = (e.currentTarget.elements.namedItem("website") as HTMLInputElement)?.value;
-    if (honeypot) {
-      setLoading(false);
-      setErr(t("err"));
-      return;
-    }
 
     abortRef.current?.abort();
     abortRef.current = new AbortController();
@@ -89,7 +84,11 @@ export default function SuggestionsForm() {
 
     const res = await fetch("/api/suggestions", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        // ⬇️ svarīgi: serveris lasa x-hp headeri
+        "x-hp": honeypot || "",
+      },
       body: JSON.stringify(payload),
       signal: abortRef.current.signal,
     });
@@ -102,7 +101,7 @@ export default function SuggestionsForm() {
       setHide(false);
       setContent("");
       (e.target as HTMLFormElement).reset();
-      await mutate("/api/suggestions"); 
+      await mutate("/api/suggestions");
     } else {
       const data: { error?: string; issues?: Issues } = await res.json().catch(() => ({} as any));
 
@@ -211,14 +210,17 @@ export default function SuggestionsForm() {
           aria-invalid={!!fieldErr.content}
           aria-describedby="content-hint"
         />
+
         <div id="content-hint" className="mt-1 text-xs text-muted-foreground">
           {content.trim().length}/{MAX_LEN}
           {content.trim().length < MIN_LEN && (
             <span className="ml-2 text-rose-600">
-              · {MIN_LEN - content.trim().length} {t("charsToMin", { default: "līdz minimumam" })}
+              {/* ⬇️ pareizais ceļš + interpolācija */}
+              · {t("charsToMin", { n: MIN_LEN - content.trim().length })}
             </span>
           )}
         </div>
+
         {fieldErr.content && (
           <div className="mt-1 text-xs text-rose-600">{fieldErr.content}</div>
         )}

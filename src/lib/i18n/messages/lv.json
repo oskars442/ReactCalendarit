@@ -454,6 +454,36 @@
     "toastTodosOk": "Pievienots Uzdevumiem",
     "toastGenericErr": "Neizdevās saglabāt"
   },
+  "suggestions": {
+  "title": "Dalies ar uzlabojumu",
+  "desc": "Ir ideja, pamanīji kļūdu vai vēlies ko ieteikt — šī ir īstā vieta. Mēs izlasām visu!",
+  "form": {
+    "name": "Tavs vārds (nav obligāti)",
+    "email": "Tavs e-pasts (nav obligāti)",
+    "anon": "Vēlos palikt anonīms",
+    "hide": "Nerādīt publiski",
+    "content": "Tavs ieteikums",
+    "submit": "Iesniegt",
+    "ok": "Paldies! Ieteikums saņemts.",
+    "err": "Ups, neizdevās iesniegt. Pamēģini vēlreiz.",
+     "charsToMin": "Vēl {n, plural, one {# rakstzīme} other {# rakstzīmes}} līdz minimumam",
+    "hintLine": "Padoms (nav obligāti)"
+  },
+  "list": {
+    "title": "Ieteikumi",
+    "loginToView": "Lūdzu, piesakies, lai skatītu šo sadaļu.",
+    "empty": "Pagaidām nav neviena ieteikuma."
+  },
+  "manage": "Pārvaldīt ieteikumus",
+  "status": {
+    "NEW": "Jauns",
+    "PLANNED": "Plānots",
+    "IN_PROGRESS": "Procesā",
+    "DONE": "Pabeigts",
+    "REJECTED": "Noraidīts"
+  }
+},
+
   "about": {
     "hero": {
       "badge": "✨ Iepazīsti komandu un mūsu stāstu",

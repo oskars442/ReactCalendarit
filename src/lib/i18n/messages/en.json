@@ -465,7 +465,7 @@
       "submit": "Submit",
       "ok": "Thanks! Suggestion received.",
       "err": "Oops, failed to submit. Try again.",
-            "charsToMin": "{{n}} character(s) to minimum",
+      "charsToMin": "{n, plural, one {# character} other {# characters}} to minimum",
       "hintLine": "Hint (optional)"
     },
     "list": {

@@ -4,6 +4,18 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { getSession, isAdmin, HttpError } from "@/lib/auth-helpers";
 
+// Kešošana OFF šim maršrutam
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+const noStore = { "Cache-Control": "private, no-store, no-cache, must-revalidate" };
+
+const IdSchema = z.object({
+  id: z
+    .string()
+    .refine(v => /^\d+$/.test(v), "Invalid id"), // 👈 ja tev kādreiz būs UUID, pielāgo
+});
+
 const UpdateSchema = z.object({
   status: z.enum(["NEW", "PLANNED", "IN_PROGRESS", "DONE", "REJECTED"]).optional(),
   pinned: z.boolean().optional(),
@@ -18,19 +30,24 @@ const UpdateSchema = z.object({
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   try {
     const session = await getSession();
-    if (!isAdmin(session)) {
-      throw new HttpError(403, "Forbidden");
-    }
+    if (!isAdmin(session)) throw new HttpError(403, "Forbidden");
 
-    const id = Number.parseInt(params.id, 10);
-    if (!Number.isFinite(id)) {
-      throw new HttpError(400, "Invalid id");
+    const pid = IdSchema.safeParse(params);
+    if (!pid.success) {
+      return new NextResponse(JSON.stringify({ error: "Invalid id" }), {
+        status: 400,
+        headers: noStore,
+      });
     }
+    const id = parseInt(pid.data.id, 10);
 
     const body = await req.json().catch(() => null);
     const parsed = UpdateSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid payload", issues: parsed.error.format() }, { status: 400 });
+      return new NextResponse(
+        JSON.stringify({ error: "Invalid payload", issues: parsed.error.format() }),
+        { status: 400, headers: noStore }
+      );
     }
 
     const updated = await prisma.suggestion.update({
@@ -38,13 +55,30 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       data: parsed.data,
     });
 
-    return NextResponse.json({ ok: true, data: updated });
-  } catch (err) {
+    return new NextResponse(JSON.stringify({ ok: true, data: updated }), {
+      status: 200,
+      headers: noStore,
+    });
+  } catch (err: any) {
     console.error("PATCH /api/suggestions/[id] error:", err);
-    if (err instanceof HttpError) {
-      return NextResponse.json({ error: err.message }, { status: err.status });
+
+    // Prisma notFound -> 404
+    if (err?.code === "P2025") {
+      return new NextResponse(JSON.stringify({ error: "Not found" }), {
+        status: 404,
+        headers: noStore,
+      });
     }
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    if (err instanceof HttpError) {
+      return new NextResponse(JSON.stringify({ error: err.message }), {
+        status: err.status,
+        headers: noStore,
+      });
+    }
+    return new NextResponse(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+      headers: noStore,
+    });
   }
 }
 
@@ -55,26 +89,44 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {
   try {
     const session = await getSession();
-    if (!isAdmin(session)) {
-      throw new HttpError(403, "Forbidden");
-    }
+    if (!isAdmin(session)) throw new HttpError(403, "Forbidden");
 
-    const id = Number.parseInt(params.id, 10);
-    if (!Number.isFinite(id)) {
-      throw new HttpError(400, "Invalid id");
+    const pid = IdSchema.safeParse(params);
+    if (!pid.success) {
+      return new NextResponse(JSON.stringify({ error: "Invalid id" }), {
+        status: 400,
+        headers: noStore,
+      });
     }
+    const id = parseInt(pid.data.id, 10);
 
-    await prisma.suggestion.update({
+    const res = await prisma.suggestion.update({
       where: { id },
       data: { archived: true },
     });
 
-    return NextResponse.json({ ok: true });
-  } catch (err) {
+    return new NextResponse(JSON.stringify({ ok: true, data: { id: res.id } }), {
+      status: 200,
+      headers: noStore,
+    });
+  } catch (err: any) {
     console.error("DELETE /api/suggestions/[id] error:", err);
-    if (err instanceof HttpError) {
-      return NextResponse.json({ error: err.message }, { status: err.status });
+
+    if (err?.code === "P2025") {
+      return new NextResponse(JSON.stringify({ error: "Not found" }), {
+        status: 404,
+        headers: noStore,
+      });
     }
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    if (err instanceof HttpError) {
+      return new NextResponse(JSON.stringify({ error: err.message }), {
+        status: err.status,
+        headers: noStore,
+      });
+    }
+    return new NextResponse(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+      headers: noStore,
+    });
   }
 }

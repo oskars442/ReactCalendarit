@@ -6,7 +6,6 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "@/lib/i18n/i18n";
 import { useSession } from "next-auth/react";
-import SidebarNav from "@/components/SidebarNav";
 import Logo from "@/assets/logo.png";
 import SignOutButton from "@/components/SignOutButton";
 
@@ -15,9 +14,9 @@ type Locale = "lv" | "en" | "ru";
 type Props = {
   locale: Locale;
   className?: string;
-  /** When provided, header renders a dashboard sidebar toggle in the left slot */
-  sidebarOpen?: boolean;                 // 👈 NEW (optional)
-  onToggleSidebar?: () => void;          // 👈 NEW (optional)
+  /** Ja nodod, headeris dashboardā rāda sānu joslas slēdzi kreisajā slotā */
+  sidebarOpen?: boolean;
+  onToggleSidebar?: () => void;
 };
 
 const LOCALE_RE = /^\/(lv|en|ru)(?=\/|$)/;
@@ -32,12 +31,12 @@ export default function HeaderNav({
 }: Props) {
   const t = useTranslations("publicNav");
   const tLanding = useTranslations("landing.nav");
+  const tNav = useTranslations("nav");
 
   const pathname = usePathname() || "/";
   const router = useRouter();
   const { status } = useSession();
   const isAuthed = status === "authenticated";
-  const tNav = useTranslations("nav");
 
   function handleSidebarButton() {
     const isMobile =
@@ -47,7 +46,6 @@ export default function HeaderNav({
     } else if (onToggleSidebar) {
       onToggleSidebar();
     } else {
-      // drošības nolūkos – atver arī draweru
       window.dispatchEvent(new CustomEvent("sidebar:open"));
     }
   }
@@ -55,26 +53,24 @@ export default function HeaderNav({
   const [open, setOpen] = useState(false);
   const [sidebarSheet, setSidebarSheet] = useState(false);
 
+  // Aizver mobilās izvēlnes, mainoties ceļam
   useEffect(() => {
     setOpen(false);
     setSidebarSheet(false);
   }, [pathname]);
 
+  // Body scroll lock, kad atvērts app slide-over
   useEffect(() => {
     if (typeof document === "undefined") return;
     const { style } = document.body;
     const prev = style.overflow;
-    if (sidebarSheet) {
-      style.overflow = "hidden";
-    } else {
-      style.overflow = prev || "";
-    }
+    style.overflow = sidebarSheet ? "hidden" : prev || "";
     return () => {
       style.overflow = prev || "";
     };
   }, [sidebarSheet]);
 
-  // Is this a dashboard route?
+  // Vai esam app (dashboard) zonā?
   const parts = pathname.split("/").filter(Boolean);
   const seg1 = parts[1] || "";
   const DASHBOARD_SEGS = new Set([
@@ -86,12 +82,12 @@ export default function HeaderNav({
     "weather",
     "stats",
     "admin",
-    "suggestions",
     "workout",
     "projects",
   ]);
   const isDashboardArea = DASHBOARD_SEGS.has(seg1);
 
+  // Publiskie top-nav linki
   const items = useMemo(
     () => [
       { href: `/${locale}`, label: t("home") },
@@ -104,77 +100,70 @@ export default function HeaderNav({
 
   const isActive = (href: string) =>
     pathname === href || pathname.replace(/\/$/, "") === href.replace(/\/$/, "");
+
   const linkCls = (href: string) =>
     `transition-colors text-white/90 hover:text-white ${
       isActive(href) ? "font-semibold text-white" : ""
     }`;
-  const selectCls =
-    "rounded-md border border-white/30 bg-white/10 text-white px-2 py-1 text-sm " +
-    "outline-none hover:bg-white/15 [&>option]:bg-white [&>option]:text-neutral-900";
-  const loginCls = "text-white/90 hover:text-white";
-  const ctaCls = "rounded-xl px-4 py-2 font-semibold bg-white text-indigo-700 hover:bg-white/90";
 
-  // ---- Disabled items helpers (public top-nav) ----
-  const DISABLED_SEGS_PUBLIC = new Set(["pricing"]); // paliek kā bija
+  const selectCls =
+    "rounded-md border border-white/30 bg-white/10 text-white px-2 py-1 text-sm outline-none hover:bg-white/15 [&>option]:bg-white [&>option]:text-neutral-900";
+
+  const loginCls = "text-white/90 hover:text-white";
+  const ctaCls =
+    "rounded-xl px-4 py-2 font-semibold bg-white text-indigo-700 hover:bg-white/90";
+
+  // Disabled helpers
+  const DISABLED_SEGS_PUBLIC = new Set(["pricing"]);
   const isDisabledHref = (href: string) => {
     const lastSeg = href.split("/").filter(Boolean).pop();
     return !!lastSeg && DISABLED_SEGS_PUBLIC.has(lastSeg);
   };
-const disabledLinkCls =
-  "opacity-60 text-white/70 select-none cursor-no-red-xs";
+  const disabledLinkCls = "opacity-60 text-white/70 select-none cursor-no-red-xs";
 
-  // ---- Disabled items helpers (APP menu: stats + projects) ----
   const DISABLED_SEGS_APP = new Set<string>(["stats", "projects"]);
 
   function changeLocale(next: Locale) {
     router.push(withLocale(pathname, next));
   }
 
-  // Left fixed slot: dashboard toggle (when props provided), else public App button (authed)
+  // Nerādām labo hamburgeri, ja esam ielogoti un dashboardā (tur jau ir kreisais)
+  const showRightBurger = !(isAuthed && isDashboardArea);
+
+  // Kreisais slot
   const leftSlot = (() => {
     if (isAuthed && isDashboardArea) {
-      // dashboard toggle
       return (
         <button
-          onClick={handleSidebarButton} // <— šeit
+          onClick={handleSidebarButton}
           className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/20 bg-white/15 hover:bg-white/25"
           title={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
+          aria-label="Toggle sidebar"
         >
           {sidebarOpen ? (
             "⟨⟨"
           ) : (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M4 7h16M4 12h16M4 17h16"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
           )}
         </button>
       );
     }
     if (isAuthed && !isDashboardArea) {
-      // public: open slide-over app menu
       return (
         <button
           onClick={() => setSidebarSheet(true)}
           className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/20 bg-white/15 hover:bg-white/25"
           title="Open app menu"
+          aria-label="Open app menu"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M4 7h16M4 12h16M4 17h16"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
         </button>
       );
     }
-    // spacer to prevent layout shift
     return <span aria-hidden className="inline-block h-9 w-9" />;
   })();
 
@@ -198,7 +187,7 @@ const disabledLinkCls =
               priority
               className="h-9 w-9 rounded-md object-contain"
             />
-            <span className="text-lg font-semibold leading-none">CalendarIt</span>
+            <span className="text-lg font-semibold leading-none truncate">CalendarIt</span>
           </Link>
 
           <nav className="hidden gap-6 md:flex">
@@ -236,34 +225,35 @@ const disabledLinkCls =
 
           {!isAuthed ? (
             <>
-              <Link href={`/${locale}/login`} className={loginCls}>
+              {/* slēpjam xs ekrānā, atstājam ≥sm */}
+              <Link href={`/${locale}/login`} className={`${loginCls} hidden sm:inline`}>
                 {tLanding("login")}
               </Link>
-              <Link href={`/${locale}/register`} className={ctaCls}>
+              <Link
+                href={`/${locale}/register`}
+                className={`${ctaCls} hidden sm:inline-flex`}
+              >
                 {tLanding("getStarted")}
               </Link>
             </>
           ) : null}
 
-          <button
-            aria-label="Toggle menu"
-            aria-expanded={open}
-            onClick={() => setOpen((v) => !v)}
-            className={`md:hidden rounded-md p-2 ${loginCls}`}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M4 6h16M4 12h16M4 18h16"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
+          {showRightBurger && (
+            <button
+              aria-label="Toggle menu"
+              aria-expanded={open}
+              onClick={() => setOpen((v) => !v)}
+              className={`md:hidden rounded-md p-2 ${loginCls}`}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile menu (public top-nav) */}
       {open && (
         <div className="md:hidden border-t border-white/10 bg-gradient-to-r from-[#4f46e5] via-[#6d5ae6] to-[#8b5cf6]">
           <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
@@ -290,13 +280,32 @@ const disabledLinkCls =
                   </Link>
                 )
               )}
-              {/* language etc. */}
+
+              {/* Login/CTA – mobilajā izvēlnē neielogotiem */}
+              {!isAuthed && (
+                <div className="mt-3 flex flex-col gap-2">
+                  <Link
+                    href={`/${locale}/login`}
+                    onClick={() => setOpen(false)}
+                    className="rounded-md px-4 py-2 text-center bg-white/10 hover:bg-white/15 text-white"
+                  >
+                    {tLanding("login")}
+                  </Link>
+                  <Link
+                    href={`/${locale}/register`}
+                    onClick={() => setOpen(false)}
+                    className="rounded-md px-4 py-2 text-center font-semibold bg-white text-indigo-700 hover:bg-white/90"
+                  >
+                    {tLanding("getStarted")}
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
 
-      {/* Public slide-over App menu (unchanged except disabled items) */}
+      {/* Public slide-over App menu (authed, ārpus dashboarda) */}
       {sidebarSheet && (
         <div className="fixed inset-0 z-[90]">
           {/* Backdrop */}
@@ -306,17 +315,15 @@ const disabledLinkCls =
             aria-hidden
           />
 
-          {/* Panelis: pilnekrāna uz mobīlā, šaurs slide-over uz desktopa */}
+          {/* Panelis: fullscreen uz mobīlā, šaurs kreisais panelis uz desktopa */}
           <aside
             role="dialog"
             aria-modal="true"
             className={`
-        absolute bg-white shadow-xl flex flex-col transition-transform duration-200
-        /* mobile: fullscreen */
-        inset-0
-        /* desktop (>= md): šaurs panelis kreisajā malā */
-        md:inset-y-0 md:left-0 md:right-auto md:top-0 md:bottom-0 md:w-[320px]
-      `}
+              absolute bg-white shadow-xl flex flex-col transition-transform duration-200
+              inset-0
+              md:inset-y-0 md:left-0 md:right-auto md:top-0 md:bottom-0 md:w-[320px]
+            `}
           >
             {/* Header rinda */}
             <div className="flex items-center justify-between px-4 py-3 border-b">
@@ -353,8 +360,7 @@ const disabledLinkCls =
                   const enabledCls = active
                     ? "bg-neutral-100 font-semibold text-neutral-900"
                     : "text-neutral-700 hover:bg-neutral-50";
-                  const disabledCls =
-  "text-neutral-400 opacity-60 select-none cursor-no-red-xs";
+                  const disabledCls = "text-neutral-400 opacity-60 select-none cursor-no-red-xs";
 
                   if (disabled) {
                     return (
