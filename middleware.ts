@@ -2,79 +2,101 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-/** Configure your locales */
-const locales = ["en", "lv"] as const;
-const defaultLocale: (typeof locales)[number] = "en";
+/** Locales */
+const locales = ["lv", "en"] as const;
+const defaultLocale: (typeof locales)[number] = "lv";
 
-/** Utility: does path start with /{locale}/ ? */
+/** Protected sadaļu prefiksi (vajag login) */
+const protectedPrefixes = [
+  "dashboard",
+  "calendar",
+  "work",          // darba dienasgrāmata, ja tev tāds ceļš
+  "tasks",
+  "projects",
+  "profile",
+  "statistics",
+  "groceries",
+  "trainings",
+  "settings",
+];
+
+/** Vai ceļš jau sākas ar /{locale}/  */
 function pathHasLocale(pathname: string) {
   const seg = pathname.split("/")[1];
   return locales.includes(seg as any);
 }
 
-/** Which paths should skip middleware entirely */
+/** Izlaižam statiskos resursus, next iekšas u.tml. */
 function isBypassedPath(pathname: string) {
-  // static files, next internals, images, etc.
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||
-    pathname.match(/\.(ico|png|jpg|jpeg|gif|svg|webp|avif|txt|xml|js|css)$/)
-  )
-    return true;
+    pathname.match(/\.(ico|png|jpg|jpeg|gif|svg|webp|avif|txt|xml|js|css|map)$/)
+  ) return true;
 
-  // APIs (let your route handlers do auth)
+  // API – lai paši route handlers veic auth (ieteicams!)
   if (pathname.startsWith("/api")) return true;
 
   return false;
 }
 
-/** Your existing code */
+/** NextAuth sesijas cookie vārds (prod vs dev) */
 function sessionCookieName(req: NextRequest) {
   return req.cookies.has("__Secure-next-auth.session-token")
     ? "__Secure-next-auth.session-token"
     : "next-auth.session-token";
 }
 
-export async function middleware(req: NextRequest) {
-  const { pathname, origin } = req.nextUrl;
+/** Vai dotais (locale-atsists) ceļš ir publisks */
+function isPublicRest(rest: string) {
+  // Public lapas (pielāgo kā vajag)
+  if (
+    rest === "/" ||
+    rest === "/login" ||
+    rest === "/register" ||
+    rest.startsWith("/auth/") ||     // NextAuth pages
+    rest.startsWith("/public/") ||
+    rest.startsWith("/about") ||
+    rest.startsWith("/pricing") ||
+    rest.startsWith("/terms") ||
+    rest.startsWith("/privacy")
+  ) return true;
 
-  // 0) Bypass for assets & API
+  // Ja nav neviena no protected prefiksiem — uzskatām par publisku
+  return !protectedPrefixes.some(p =>
+    new RegExp(`^/${p}(?:/|$)`, "i").test(rest)
+  );
+}
+
+export async function middleware(req: NextRequest) {
+  const { pathname, origin, search } = req.nextUrl;
+
+  // 0) Bypass
   if (isBypassedPath(pathname)) return NextResponse.next();
 
-  // 1) Locale prefix enforcement (redirect / → /{defaultLocale}, and
-  //    also /foo → /{defaultLocale}/foo if it lacks a locale prefix)
+  // 1) Piespiežam locale prefiksu
   if (!pathHasLocale(pathname)) {
-    const redirectURL = new URL(
-      `/${defaultLocale}${pathname.endsWith("/") ? pathname : pathname}`,
-      origin
-    );
-    // handle query string as well
-    redirectURL.search = req.nextUrl.search;
+    const clean = pathname.startsWith("/") ? pathname : `/${pathname}`;
+    const redirectURL = new URL(`/${defaultLocale}${clean}`, origin);
+    redirectURL.search = search; // saglabā query
     return NextResponse.redirect(redirectURL);
   }
 
-  // 2) Auth (your logic; leave paths like /{locale}/login public)
-  //    Adjust this list to match your public routes.
+  // 2) Izgriežam locale un nosakām, vai vajag auth
   const segments = pathname.split("/").filter(Boolean);
-  const locale = segments[0];
-  const rest = `/${segments.slice(1).join("/")}`;
+  const locale = segments[0] as typeof locales[number];
+  const rest = `/${segments.slice(1).join("/")}` || "/";
 
-  const isPublic =
-    rest === "/login" ||
-    rest === "/register" ||
-    rest.startsWith("/auth/") ||
-    rest.startsWith("/public/");
-
-  if (!isPublic) {
+  if (!isPublicRest(rest)) {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
     if (!token) {
-      // redirect unauthenticated users to /{locale}/login
+      // Nav ielogojies → uz /{locale}/login ar redirect parametru
       const loginURL = new URL(`/${locale}/login`, origin);
-      loginURL.searchParams.set("from", pathname);
+      loginURL.searchParams.set("from", pathname + search);
       return NextResponse.redirect(loginURL);
     }
 
-    // 3) “Remember me” → downgrade to session cookie if user didn’t opt-in
+    // 3) “Remember me” nav ieslēgts → sesijas cookies (bez maxAge)
     const remember = req.cookies.get("remember_me")?.value === "1";
     if (!remember) {
       const name = sessionCookieName(req);
@@ -88,7 +110,7 @@ export async function middleware(req: NextRequest) {
           sameSite: "lax",
           path: "/",
           secure: process.env.NODE_ENV === "production",
-          // No expires/maxAge → session cookie
+          // bez expires/maxAge → session cookie
         });
         return res;
       }
@@ -98,14 +120,6 @@ export async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-/**
- * Match everything EXCEPT:
- *  - static files (has a dot), _next, favicon
- *  - we still want / and all locale-prefixed routes to be handled
- */
 export const config = {
-  matcher: [
-    // run on all paths
-    "/((?!_next|.*\\..*|favicon.ico).*)",
-  ],
+  matcher: ["/((?!_next|.*\\..*|favicon.ico).*)"],
 };
