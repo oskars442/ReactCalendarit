@@ -3,25 +3,36 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireUserId } from "@/lib/auth-helpers";
 
-export async function GET() {
+/** Nolasām userId un pārvēršam par number (ja nav derīgs -> 401) */
+async function getUserIdNumber(req: Request): Promise<number> {
+  const raw = await requireUserId(req as any);
+  const n = typeof raw === "string" ? Number(raw) : raw;
+  if (!Number.isFinite(n)) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+  return n;
+}
+
+export async function GET(req: Request) {
   try {
-    const userId = await requireUserId();
+    const userId = await getUserIdNumber(req);
 
     const labels = await prisma.workDiaryLabel.findMany({
       where: { userId, archived: false },
       orderBy: { name: "asc" },
     });
 
-    return NextResponse.json(labels);
+    return NextResponse.json(labels, { status: 200 });
   } catch (e: any) {
     const status = e?.status === 401 ? 401 : 500;
+    if (status === 500) console.error("[/api/work/labels] GET failed:", e);
     return NextResponse.json({ error: "Failed to load labels." }, { status });
   }
 }
 
 export async function POST(req: Request) {
   try {
-    const userId = await requireUserId();
+    const userId = await getUserIdNumber(req);
     const b = await req.json().catch(() => ({} as any));
 
     // --- validate ---
@@ -32,8 +43,7 @@ export async function POST(req: Request) {
     let colorHex = String(b?.colorHex ?? "").trim().toLowerCase();
     if (!/^#([0-9a-f]{6})$/.test(colorHex)) colorHex = "#6c757d";
 
-    // --- prevent dupes case-insensitively ---
-    // Ja eksistē (pat ar citu burtu lielumu) – atjauninām to pašu ierakstu
+    // --- prevent dupes (case-insensitive) ---
     const existingCI = await prisma.workDiaryLabel.findFirst({
       where: {
         userId,
@@ -52,15 +62,15 @@ export async function POST(req: Request) {
 
     return NextResponse.json(saved, { status: existingCI ? 200 : 201 });
   } catch (e: any) {
-    // Var trāpīt uz unikālā indeksa kļūdu (ja vienlaicīgi izsauc ar citu “case”)
-    // Prisma P2002 → unique constraint failed
     if (e?.code === "P2002") {
+      // unique constraint
       return NextResponse.json(
         { error: "Label with this name already exists." },
         { status: 409 }
       );
     }
     const status = e?.status === 401 ? 401 : 500;
+    if (status === 500) console.error("[/api/work/labels] POST failed:", e);
     return NextResponse.json({ error: "Failed to save label." }, { status });
   }
 }

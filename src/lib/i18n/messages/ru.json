@@ -80,7 +80,9 @@
 "workDiary": "Рабочий дневник",
 "weather": "Погода",
 "stats": "Статистика",
-"workout": "Тренировка"
+"workout": "Тренировка",
+"babyTracker": "Трекер малыша",
+ "projects": "Projects"
 },
 
 "auth": {

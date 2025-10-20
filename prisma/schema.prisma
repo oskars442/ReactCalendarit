@@ -68,6 +68,8 @@ model User {
 
   labels WorkDiaryLabel[] 
 
+  babies   Baby[]
+
   @@map("users")
 }
 
@@ -200,3 +202,40 @@ model RecurringEvent {
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
 }
 
+model Baby {
+  id        String    @id @default(cuid())
+  name      String
+  birth     DateTime?
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs      BabyLog[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model BabyLog {
+  id         String    @id @default(cuid())
+
+  // userId paliek kā STRING, bez relācijas
+  userId     String
+
+  // baby relācija ok (Baby.id ir String)
+  babyId     String?
+  baby       Baby?     @relation(fields: [babyId], references: [id], onDelete: SetNull)
+
+  occurredAt DateTime
+  foodType   String
+  amount     Int
+  unit       String
+  weightKg   Float?
+  notes      String?
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([babyId])
+}

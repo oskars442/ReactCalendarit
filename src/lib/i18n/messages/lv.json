@@ -80,7 +80,9 @@
     "workDiary": "Darba dienasgrāmata",
     "weather": "Laikapstākļi",
     "stats": "Statistika",
-    "workout": "Treniņi"
+    "workout": "Treniņi",
+    "babyTracker": "Mazuļa izsekošana",
+    "projects": "Projekti"
   },
 
   "auth": {

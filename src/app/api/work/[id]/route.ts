@@ -49,24 +49,37 @@ function mapOut(row: any) {
   };
 }
 
+/* ===== helper: nolasīt userId un konvertēt uz number ===== */
+async function getUserIdNumber(req?: Request): Promise<number> {
+  const raw = await requireUserId(req as any); // ja helperis negaida parametru, tas vienkārši ignorēs
+  const n = typeof raw === "string" ? Number(raw) : raw;
+  if (!Number.isFinite(n)) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+  return n;
+}
+
 /* ---------- GET /api/work/[id] ---------- */
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const userId = await requireUserId();
+    const userId = await getUserIdNumber(req);
     const id = Number(params.id);
-    if (!id) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+    if (!Number.isFinite(id)) {
+      return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+    }
 
     const row = await prisma.workDiaryEntry.findFirst({
       where: { id, userId },
     });
     if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    return NextResponse.json(mapOut(row));
+    return NextResponse.json(mapOut(row), { status: 200 });
   } catch (e: any) {
     const status = e?.status === 401 ? 401 : 500;
+    if (status === 500) console.error("GET /api/work/[id] error:", e);
     return NextResponse.json({ error: "Failed to fetch." }, { status });
   }
 }
@@ -77,9 +90,11 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const userId = await requireUserId();
+    const userId = await getUserIdNumber(req);
     const id = Number(params.id);
-    if (!id) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+    if (!Number.isFinite(id)) {
+      return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+    }
 
     const b = await req.json();
 
@@ -114,7 +129,7 @@ export async function PATCH(
     }
 
     await prisma.workDiaryEntry.update({
-      where: { id }, // user scoping jau pārbaudījām iepriekš
+      where: { id }, // user scoping jau pārbaudīts iepriekš
       data: {
         ...(b.type !== undefined ? { type: coerceType(b.type) } : {}),
         ...(b.label !== undefined ? { label: b.label ?? null } : {}),
@@ -132,7 +147,7 @@ export async function PATCH(
     const row = await prisma.workDiaryEntry.findUnique({ where: { id } });
     if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    return NextResponse.json(mapOut(row));
+    return NextResponse.json(mapOut(row), { status: 200 });
   } catch (e: any) {
     const code = e?.meta?.code || e?.code || e?.cause?.code;
     if (code === "23514") {
@@ -141,21 +156,23 @@ export async function PATCH(
         { status: 400 }
       );
     }
-    console.error("PATCH /api/work/[id] error:", e);
     const status = e?.status === 401 ? 401 : 500;
+    if (status === 500) console.error("PATCH /api/work/[id] error:", e);
     return NextResponse.json({ error: "Failed to update." }, { status });
   }
 }
 
 /* ---------- DELETE /api/work/[id] ---------- */
 export async function DELETE(
-  _req: Request,
+  req: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const userId = await requireUserId();
+    const userId = await getUserIdNumber(req);
     const id = Number(params.id);
-    if (!id) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+    if (!Number.isFinite(id)) {
+      return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+    }
 
     // droši dzēšam tikai paša ierakstu
     const { count } = await prisma.workDiaryEntry.deleteMany({
@@ -163,9 +180,10 @@ export async function DELETE(
     });
     if (count === 0) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true }, { status: 200 });
   } catch (e: any) {
     const status = e?.status === 401 ? 401 : 500;
+    if (status === 500) console.error("DELETE /api/work/[id] error:", e);
     return NextResponse.json({ error: "Failed to delete." }, { status });
   }
 }

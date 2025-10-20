@@ -80,7 +80,9 @@
     "workDiary": "Work Diary",
     "weather": "Weather",
     "stats": "Statistics",
-    "workout": "Workout"
+    "workout": "Workout",
+    "babyTracker": "Baby Tracker",
+     "projects": "Projects"
   },
 
   "auth": {

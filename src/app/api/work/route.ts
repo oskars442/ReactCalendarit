@@ -6,9 +6,6 @@ import { requireUserId } from "@/lib/auth-helpers";
 
 /* ---------- time helpers ---------- */
 function parseLocalSql(s: string): Date {
-  // "YYYY-MM-DD HH:MM:SS" -> Date
-  // pieņemam, ka nāk lokālā laikā (bez TZ) un glabājas ar TZ kolonnā (Postgres timestamptz).
-  // Ja vajag stingru TZ konversiju, var ieviest papildus loģiku.
   return new Date(s.replace(" ", "T"));
 }
 function toSqlLocal(dt: Date | null | undefined): string | null {
@@ -48,10 +45,23 @@ function mapOut(row: any) {
   };
 }
 
+/* ===== helper: ielogo un pārvērš userId par number ===== */
+async function getUserIdNumber(): Promise<number> {
+  const raw = await requireUserId(); // var būt string | number
+  const n = typeof raw === "string" ? Number(raw) : raw;
+  if (!Number.isFinite(n)) {
+    // ja tev DB glabā userId kā string, tad PRISMA modelī jāpārtaisa uz String
+    // bet šobrīd prasīts number, tātad bez derīga number -> unauthorized
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+  return n;
+}
+
 /* ===================== GET /api/work ===================== */
 export async function GET(req: Request) {
   try {
-    const userId = await requireUserId();
+    const userId = await getUserIdNumber();
+
     const { searchParams } = new URL(req.url);
     const from = searchParams.get("from");
     const to = searchParams.get("to");
@@ -73,15 +83,16 @@ export async function GET(req: Request) {
 
     const rows = await prisma.workDiaryEntry.findMany({
       where: {
-        userId,
+        userId,                         // <- number
         startAt: { gte: fromDt, lte: toDt },
       },
       orderBy: { startAt: "asc" },
     });
 
-    return NextResponse.json(rows.map(mapOut));
+    return NextResponse.json(rows.map(mapOut), { status: 200 });
   } catch (e: any) {
     const status = e?.status === 401 ? 401 : 500;
+    if (status === 500) console.error("[/api/work] GET failed:", e);
     return NextResponse.json({ error: "Failed to load entries." }, { status });
   }
 }
@@ -89,7 +100,8 @@ export async function GET(req: Request) {
 /* ===================== POST /api/work ===================== */
 export async function POST(req: Request) {
   try {
-    const userId = await requireUserId();
+    const userId = await getUserIdNumber();
+
     const b = await req.json();
 
     // minimāla validācija
@@ -110,9 +122,9 @@ export async function POST(req: Request) {
 
     const created = await prisma.workDiaryEntry.create({
       data: {
-        userId,
+        userId,                         // <- number
         type: coerceType(b.type),
-        label: b.label ?? null,             // used when type="other"
+        label: b.label ?? null,         // when type="other"
         typeColor: b.type_color ?? null,
         title: b.title ?? null,
         notes: b.notes ?? null,
@@ -126,8 +138,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json(mapOut(created), { status: 201 });
   } catch (e: any) {
-    console.error(e);
     const status = e?.status === 401 ? 401 : 500;
+    if (status === 500) console.error("[/api/work] POST failed:", e);
     return NextResponse.json({ error: "Failed to create." }, { status });
   }
 }

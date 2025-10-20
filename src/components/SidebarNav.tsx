@@ -18,8 +18,10 @@ const items: Item[] = [
   { segment: "workout",    key: "workout" },
   { segment: "groceries",  key: "groceries" },
   { segment: "weather",    key: "weather" },
+  { segment: "baby-tracker", key: "babyTracker" },
   { segment: "stats",      key: "stats" },
   { segment: "projects",   key: "projects" },
+  
 ];
 
 // === DISABLED sadaļas dashboard navigācijai ===

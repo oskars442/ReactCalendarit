@@ -84,6 +84,7 @@ export default function HeaderNav({
     "admin",
     "workout",
     "projects",
+    "baby-tracker", 
   ]);
   const isDashboardArea = DASHBOARD_SEGS.has(seg1);
 
@@ -350,6 +351,7 @@ export default function HeaderNav({
                   { segment: "weather", key: "weather" },
                   { segment: "stats", key: "stats" },
                   { segment: "projects", key: "projects" },
+                  { segment: "baby-tracker", key: "babyTracker" },
                 ].map(({ segment, key }) => {
                   const href = `/${locale}/${segment}`;
                   const active = pathname === href || pathname.startsWith(href + "/");

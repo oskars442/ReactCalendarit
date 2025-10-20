@@ -3,16 +3,23 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireUserId } from "@/lib/auth-helpers";
 
+/** Nolasām userId un pārvēršam par number (ja nav derīgs -> 401) */
+async function getUserIdNumber(req: Request): Promise<number> {
+  const raw = await requireUserId(req as any);
+  const n = typeof raw === "string" ? Number(raw) : raw;
+  if (!Number.isFinite(n)) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+  return n;
+}
+
 /**
  * DELETE /api/work/labels/:id
  * Soft-delete: archived = true
  */
-export async function DELETE(
-  _req: Request,
-  ctx: { params: { id: string } }
-) {
+export async function DELETE(req: Request, ctx: { params: { id: string } }) {
   try {
-    const userId = await requireUserId();
+    const userId = await getUserIdNumber(req);
     const id = Number(ctx.params.id);
     if (!Number.isFinite(id)) {
       return NextResponse.json({ error: "Invalid id" }, { status: 400 });
@@ -32,9 +39,10 @@ export async function DELETE(
       data: { archived: true },
     });
 
-    return new NextResponse(null, { status: 204 });
+    return new Response(null, { status: 204 });
   } catch (e: any) {
     const status = e?.status === 401 ? 401 : 500;
+    if (status === 500) console.error("DELETE /api/work/labels/[id] error:", e);
     return NextResponse.json({ error: "Failed to delete label." }, { status });
   }
 }
@@ -43,12 +51,9 @@ export async function DELETE(
  * PATCH /api/work/labels/:id
  * Maina nosaukumu/krāsu. Nodrošina unikālu nosaukumu (case-insensitive) starp ne-arhivētajām etiķetēm.
  */
-export async function PATCH(
-  req: Request,
-  ctx: { params: { id: string } }
-) {
+export async function PATCH(req: Request, ctx: { params: { id: string } }) {
   try {
-    const userId = await requireUserId();
+    const userId = await getUserIdNumber(req);
     const id = Number(ctx.params.id);
     if (!Number.isFinite(id)) {
       return NextResponse.json({ error: "Invalid id" }, { status: 400 });
@@ -56,7 +61,8 @@ export async function PATCH(
 
     const body = await req.json().catch(() => ({} as any));
     const nextNameRaw = typeof body?.name === "string" ? body.name : undefined;
-    const nextColorRaw = typeof body?.colorHex === "string" ? body.colorHex : undefined;
+    const nextColorRaw =
+      typeof body?.colorHex === "string" ? body.colorHex : undefined;
 
     const name = nextNameRaw?.trim();
     const colorHex = nextColorRaw?.trim()?.toLowerCase();
@@ -80,7 +86,7 @@ export async function PATCH(
           userId,
           archived: false,
           name: { equals: name, mode: "insensitive" },
-          NOT: { id }, // nepašai
+          NOT: { id }, // ne pašai
         },
         select: { id: true },
       });
@@ -100,9 +106,10 @@ export async function PATCH(
       },
     });
 
-    return NextResponse.json(updated);
+    return NextResponse.json(updated, { status: 200 });
   } catch (e: any) {
     const status = e?.status === 401 ? 401 : 500;
+    if (status === 500) console.error("PATCH /api/work/labels/[id] error:", e);
     return NextResponse.json({ error: "Failed to update label." }, { status });
   }
 }
