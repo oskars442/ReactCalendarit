@@ -82,7 +82,8 @@
     "stats": "Statistics",
     "workout": "Workout",
     "babyTracker": "Baby Tracker",
-     "projects": "Projects"
+     "projects": "Projects",
+     "profile" : "My Profile"
   },
 
   "auth": {

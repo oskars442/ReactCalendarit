@@ -10,10 +10,10 @@
  * - 1. variants: Darbības kolonna tabulā (✏️/🗑️)
  */
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-/* ✅ Recharts importi — PIELIKU (statistikas daļai) */
+/* ✅ Recharts importi — statistikai */
 import {
   ResponsiveContainer,
   LineChart,
@@ -90,10 +90,9 @@ type Baby = { id: string; name: string; birth?: string | null }
 
 /* ====================== Page ====================== */
 export default function BabyTrackerClient({ initialLogs }: { initialLogs: BabyLog[] }) {
-    
+
   const router = useRouter()
 
-  
   // State
   const [logs, setLogs] = useState<BabyLog[]>(initialLogs)
   const [range, setRange] = useState<'7d' | '30d' | '1g'>('7d')
@@ -101,9 +100,12 @@ export default function BabyTrackerClient({ initialLogs }: { initialLogs: BabyLo
   const [editingLog, setEditingLog] = useState<BabyLog | null>(null)
 
   // Babies (demo; vēlāk aizstāt ar DB)
- const [babyOpen, setBabyOpen] = useState(false)
- const [babies, setBabies] = useState<Baby[]>([])
- const [selectedBaby, setSelectedBaby] = useState<string>("")
+  const [babyOpen, setBabyOpen] = useState(false)
+  const [babies, setBabies] = useState<Baby[]>([])
+  const [selectedBaby, setSelectedBaby] = useState<string>("")
+
+  // Anti-paralēlais reload slēdzis
+  const isReloading = useRef(false)
 
   // Šodien (Rīgas laikā)
   const todayISO = todayDateInTZ()
@@ -118,11 +120,14 @@ export default function BabyTrackerClient({ initialLogs }: { initialLogs: BabyLo
   }, [logs, todayISO])
 
   const visibleLogs = useMemo(
-  () => (selectedBaby ? logs.filter(l => l.babyId === selectedBaby) : logs),
-  [logs, selectedBaby]
-)
-  // Reload by range
+    () => (selectedBaby ? logs.filter(l => l.babyId === selectedBaby) : logs),
+    [logs, selectedBaby]
+  )
+
+  // Reload by range (ar guard)
   async function reload(newRange: '7d' | '30d' | '1g' = range) {
+    if (isReloading.current) return
+    isReloading.current = true
     try {
       setRange(newRange)
       const days = newRange === '7d' ? 7 : newRange === '30d' ? 30 : 365
@@ -132,13 +137,19 @@ export default function BabyTrackerClient({ initialLogs }: { initialLogs: BabyLo
       setLogs(data.logs)
     } catch (e) {
       console.error(e)
+    } finally {
+      isReloading.current = false
     }
   }
 
-  // Create
+  // Create (ar idempotencyKey)
   async function createLog(payload: LogPayload) {
     try {
-      const body = { ...payload, babyId: selectedBaby || null }
+      const body = {
+        ...payload,
+        babyId: selectedBaby || null,
+        idempotencyKey: crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`
+      }
       const res = await fetch('/api/baby-logs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -185,81 +196,86 @@ export default function BabyTrackerClient({ initialLogs }: { initialLogs: BabyLo
     setModalOpen(true)
   }
 
-async function loadBabies() {
-  try {
-    const res = await fetch("/api/babies", { cache: "no-store" })
-    if (!res.ok) throw new Error("Failed to load babies")
-    const data: { babies: Baby[] } = await res.json()
-    setBabies(data.babies || [])
+  async function loadBabies() {
+    try {
+      const res = await fetch("/api/babies", { cache: "no-store" })
+      if (!res.ok) throw new Error("Failed to load babies")
+      const data: { babies: Baby[] } = await res.json()
+      setBabies(data.babies || [])
 
-    const list = data.babies || []
-    if (selectedBaby && list.some(b => b.id === selectedBaby)) {
-      // paturi esošo izvēli
-      return
+      const list = data.babies || []
+      if (selectedBaby && list.some(b => b.id === selectedBaby)) {
+        // paturi esošo izvēli
+        return
+      }
+      if (list.length === 1) {
+        setSelectedBaby(list[0].id)   // auto-select ja tieši 1
+      } else {
+        setSelectedBaby("")            // liekam izvēlēties
+      }
+    } catch (e) {
+      console.error(e)
     }
-    if (list.length === 1) {
-      setSelectedBaby(list[0].id)   // auto-select ja tieši 1
-    } else {
-      setSelectedBaby("")            // liekam izvēlēties
+  }
+
+  useEffect(() => {
+    void loadBabies()
+  }, [])
+
+  useEffect(() => {
+    // ja ir tieši 1 bērns un šobrīd nav izvēles → auto-izvēlamies
+    if (babies.length === 1 && !selectedBaby) {
+      setSelectedBaby(babies[0].id)
     }
-  } catch (e) {
-    console.error(e)
-  }
-}
-
-useEffect(() => {
-  void loadBabies()
-}, [])
-
-useEffect(() => {
-  // ja ir tieši 1 bērns un šobrīd nav izvēles → auto-izvēlamies
-  if (babies.length === 1 && !selectedBaby) {
-    setSelectedBaby(babies[0].id)
-  }
-}, [babies, selectedBaby])
+  }, [babies, selectedBaby])
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-rose-50 to-white dark:from-neutral-950 dark:to-neutral-950 text-neutral-900 dark:text-neutral-100">
       {/* ===== Header ===== */}
       <header className="sticky top-0 z-20 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-neutral-900/50 border-b border-neutral-200/70 dark:border-neutral-800">
-        <div className="mx-auto max-w-6xl px-4 py-3 flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-rose-500/10 grid place-items-center" aria-hidden>
-            <span className="text-rose-500 text-lg">🍼</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-lg font-semibold leading-tight truncate">Mazuļu ēdienreižu uzskaite</h1>
+        <div className="mx-auto max-w-6xl px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          {/* 1. rinda: ikona + virsraksts */}
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-9 w-9 rounded-xl bg-rose-500/10 grid place-items-center" aria-hidden>
+              <span className="text-rose-500 text-lg">🍼</span>
+            </div>
+            <h1 className="text-lg font-semibold leading-tight truncate">
+              Mazuļu ēdienreižu uzskaite
+            </h1>
           </div>
 
-          {/* Baby select + actions */}
-          <div className="flex items-center gap-2">
+          {/* 2. rinda: izvēles + pogas (stack mobilajā, rindā uz >=sm) */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
             <label className="sr-only" htmlFor="babySelect">Zīdainis</label>
-           <select
-  id="babySelect"
-  value={selectedBaby}
-  onChange={(e) => setSelectedBaby(e.target.value)}
-  className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white/70 dark:bg-neutral-900/70 px-3 py-2 text-sm"
->
-  <option value="" disabled>👶 Izvēlies zīdaini…</option>
-  {babies.map(b => (
-    <option key={b.id} value={b.id}>👶 {b.name}</option>
-  ))}
-</select>
-
-            <button
-              type="button"
-              onClick={() => setBabyOpen(true)}
-              className="rounded-xl px-3 py-2 text-sm bg-white/70 dark:bg-neutral-900/70 border border-neutral-200 dark:border-neutral-800"
+            <select
+              id="babySelect"
+              value={selectedBaby}
+              onChange={(e) => setSelectedBaby(e.target.value)}
+              className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white/70 dark:bg-neutral-900/70 px-3 py-2 text-sm w-full sm:w-56"
             >
-              + Bērns
-            </button>
+              <option value="" disabled>👶 Izvēlies zīdaini…</option>
+              {babies.map(b => (
+                <option key={b.id} value={b.id}>👶 {b.name}</option>
+              ))}
+            </select>
 
-            <button
-              type="button"
-              onClick={() => { setEditingLog(null); setModalOpen(true) }}
-              className="rounded-xl px-3 py-2 text-sm font-medium bg-rose-500 text-white shadow-sm hover:shadow transition"
-            >
-              + Jauns ieraksts
-            </button>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={() => setBabyOpen(true)}
+                className="rounded-xl px-3 py-2 text-sm bg-white/70 dark:bg-neutral-900/70 border border-neutral-200 dark:border-neutral-800 w-full sm:w-auto"
+              >
+                + Bērns
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setEditingLog(null); setModalOpen(true) }}
+                className="rounded-xl px-3 py-2 text-sm font-medium bg-rose-500 text-white shadow-sm hover:shadow transition w-full sm:w-auto"
+              >
+                + Jauns ieraksts
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -283,14 +299,14 @@ useEffect(() => {
           <div className="xl:col-span-3 rounded-2xl border border-neutral-200/70 dark:border-neutral-800/80 bg-white/70 dark:bg-neutral-900/60 backdrop-blur p-4 shadow-sm overflow-hidden">
             <h2 className="font-semibold mb-3">Vēsture</h2>
             <LogsTable
-  logs={visibleLogs}
-  onEdit={handleEdit}
-  onDelete={handleDelete}
-/>
+              logs={visibleLogs}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
           </div>
         </section>
 
-        {/* ===== Statistika — ŠEIT TIKAI IZMAIŅAS ===== */}
+        {/* ===== Statistika ===== */}
         <section className="lg:col-span-12 grid gap-4">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold">Statistika</h2>
@@ -308,9 +324,8 @@ useEffect(() => {
             </div>
           </div>
 
-          {/* ✅ Aizvietoju placeholderus ar īstiem Recharts un pievienoju datu agregāciju */}
-          <ChartCard title="Svara izmaiņas" subtitle="kg" variant="line" logs={logs} range={range} />
           <ChartCard title="Apēstais daudzums / dienā" subtitle="ml / g" variant="bar" logs={logs} range={range} />
+          <ChartCard title="Svara izmaiņas" subtitle="kg" variant="line" logs={logs} range={range} />
         </section>
       </main>
 
@@ -318,13 +333,13 @@ useEffect(() => {
       {babyOpen && (
         <Modal onClose={() => setBabyOpen(false)} title="Pievienot zīdaini">
           <AddBabyForm
-  onAdd={(baby) => {
-    // ieliekam jaunpievienoto bez pilna reload, lai UI uzreiz dzīvs
-    setBabies(p => [...p, baby])
-    setSelectedBaby(baby.id)   // auto-izvēlamies svaigi izveidoto
-    setBabyOpen(false)
-  }}
-/>
+            onAdd={(baby) => {
+              // ieliekam jaunpievienoto bez pilna reload, lai UI uzreiz dzīvs
+              setBabies(p => [...p, baby])
+              setSelectedBaby(baby.id)   // auto-izvēlamies svaigi izveidoto
+              setBabyOpen(false)
+            }}
+          />
         </Modal>
       )}
 
@@ -381,17 +396,16 @@ function Timeline({ logs }: { logs: BabyLog[] }) {
             <span className="font-medium">{l.amount} {l.unit}</span>
             {l.weightKg != null ? <span className="text-neutral-500"> · {l.weightKg} kg</span> : null}
           </div>
-{l.notes && (
-  <div className="text-sm text-neutral-600 dark:text-neutral-300 whitespace-pre-wrap break-words">
-    {l.notes}
-  </div>
-)}
+          {l.notes && (
+            <div className="text-sm text-neutral-600 dark:text-neutral-300 whitespace-pre-wrap break-words">
+              {l.notes}
+            </div>
+          )}
         </li>
       ))}
     </ol>
   )
 }
-
 
 function StatCard({ label, value, hint }: { label: string; value: React.ReactNode; hint?: string }) {
   return (
@@ -455,7 +469,7 @@ function Modal({ onClose, title, subtitle, children }: { onClose: () => void; ti
             <h3 className="font-semibold">{title}</h3>
             {subtitle ? <p className="text-sm text-neutral-500 dark:text-neutral-400">{subtitle}</p> : null}
           </div>
-        <button onClick={onClose} className="rounded-xl px-2 py-1 text-sm bg-neutral-100 dark:bg-neutral-800" aria-label="Aizvērt">✕</button>
+          <button onClick={onClose} className="rounded-xl px-2 py-1 text-sm bg-neutral-100 dark:bg-neutral-800" aria-label="Aizvērt">✕</button>
         </div>
         {children}
       </div>
@@ -463,7 +477,7 @@ function Modal({ onClose, title, subtitle, children }: { onClose: () => void; ti
   )
 }
 
-/* ====== Create/Edit form in modal ====== */
+/* ====== Create/Edit form in modal (uzlabots ar lock + spineri) ====== */
 type LogPayload = {
   occurredAt: string
   foodType: string
@@ -479,7 +493,7 @@ function QuickAdd({
   initial,
   mode = 'create',
 }: {
-  onAdd: (row: LogPayload) => void
+  onAdd: (row: LogPayload) => Promise<void> | void
   onCancel?: () => void
   initial?: Partial<LogPayload>
   mode?: 'create' | 'edit'
@@ -503,6 +517,7 @@ function QuickAdd({
   const [unit, setUnit] = useState<'ml' | 'g'>((initial?.unit as 'ml'|'g') ?? 'ml')
   const [weightKg, setWeightKg] = useState<string>(initial?.weightKg != null ? String(initial.weightKg) : '')
   const [notes, setNotes] = useState(initial?.notes ?? '')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     // ja ienāk citi initial (reti), sinhronizējam
@@ -523,21 +538,26 @@ function QuickAdd({
     if (initial.notes != null) setNotes(initial.notes)
   }, [initial])
 
-  const canSubmit = amount !== '' // minimāla validācija
+  const canSubmit = amount !== '' && !isSubmitting // minimāla validācija + lock
 
   return (
     <form
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault()
         if (!canSubmit) return
-        onAdd({
-          occurredAt: new Date(dt).toISOString(),
-          foodType: food,
-          amount: Number(amount || 0),
-          unit,
-          weightKg: weightKg === '' ? null : Number(weightKg),
-          notes,
-        })
+        try {
+          setIsSubmitting(true)
+          await onAdd({
+            occurredAt: new Date(dt).toISOString(),
+            foodType: food,
+            amount: Number(amount || 0),
+            unit,
+            weightKg: weightKg === '' ? null : Number(weightKg),
+            notes,
+          })
+        } finally {
+          setIsSubmitting(false)
+        }
       }}
       className="grid grid-cols-1 sm:grid-cols-2 gap-3"
     >
@@ -577,11 +597,35 @@ function QuickAdd({
       </div>
       <div className="sm:col-span-2 flex items-center justify-end gap-2 pt-1">
         {onCancel ? (
-          <button type="button" onClick={onCancel} className="rounded-xl px-3 py-2 text-sm bg-neutral-100 dark:bg-neutral-800">Atcelt</button>
+          <button type="button" onClick={onCancel} className="rounded-xl px-3 py-2 text-sm bg-neutral-100 dark:bg-neutral-800" disabled={isSubmitting}>
+            Atcelt
+          </button>
         ) : null}
-        <button type="reset" onClick={() => { setAmount(''); setWeightKg(''); setNotes('') }} className="rounded-xl px-3 py-2 text-sm bg-neutral-100 dark:bg-neutral-800">Notīrīt</button>
-        <button type="submit" disabled={!canSubmit} className="rounded-xl px-4 py-2 text-sm font-medium bg-rose-500 text-white shadow-sm hover:shadow transition disabled:opacity-50 disabled:cursor-not-allowed">
-          {mode === 'edit' ? 'Atjaunināt ierakstu' : 'Saglabāt'}
+        <button
+          type="reset"
+          onClick={() => { if (!isSubmitting) { setAmount(''); setWeightKg(''); setNotes('') } }}
+          className="rounded-xl px-3 py-2 text-sm bg-neutral-100 dark:bg-neutral-800"
+          disabled={isSubmitting}
+        >
+          Notīrīt
+        </button>
+        <button
+          type="submit"
+          disabled={!canSubmit}
+          aria-busy={isSubmitting}
+          className="rounded-xl px-4 py-2 text-sm font-medium bg-rose-500 text-white shadow-sm hover:shadow transition disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
+        >
+          {isSubmitting ? (
+            <>
+              <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.25" strokeWidth="4" />
+                <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+              </svg>
+              Saglabāju…
+            </>
+          ) : (
+            (mode === 'edit' ? 'Atjaunināt ierakstu' : 'Saglabāt')
+          )}
         </button>
       </div>
     </form>
@@ -649,7 +693,7 @@ function LogsTable({
   )
 }
 
-/* ====================== Chart placeholders -> PĀRVEIDOTS UZ īstajiem grafikiem ====================== */
+/* ====================== Chart placeholders -> īstie grafiki ====================== */
 /* Palīdz-funkcija tikai šai sadaļai: YYYY-MM-DD LV laikā */
 function datePartInTZ(iso: string, tz: string = LV_TZ, locale = 'lv-LV') {
   try {

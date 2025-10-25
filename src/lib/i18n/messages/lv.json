@@ -82,7 +82,8 @@
     "stats": "Statistika",
     "workout": "Treniņi",
     "babyTracker": "Mazuļa izsekošana",
-    "projects": "Projekti"
+    "projects": "Projekti",
+    "profile" : "Mans Profils"
   },
 
   "auth": {

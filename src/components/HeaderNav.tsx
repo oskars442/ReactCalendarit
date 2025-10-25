@@ -70,6 +70,14 @@ export default function HeaderNav({
     };
   }, [sidebarSheet]);
 
+  // Aizver visus slīdošos paneļus, kad lietotājs vairs nav ielogots
+useEffect(() => {
+  if (status !== "authenticated") {
+    setOpen(false);         // publiskais top-nav hamburgers
+    setSidebarSheet(false); // “App menu” slide-over
+  }
+}, [status]);
+
   // Vai esam app (dashboard) zonā?
   const parts = pathname.split("/").filter(Boolean);
   const seg1 = parts[1] || "";

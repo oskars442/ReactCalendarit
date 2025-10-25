@@ -82,7 +82,8 @@
 "stats": "Статистика",
 "workout": "Тренировка",
 "babyTracker": "Трекер малыша",
- "projects": "Projects"
+ "projects": "Projects",
+ "profile" : "Mans Profils"
 },
 
 "auth": {
