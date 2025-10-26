@@ -138,7 +138,7 @@ useEffect(() => {
   }
 
   // Nerādām labo hamburgeri, ja esam ielogoti un dashboardā (tur jau ir kreisais)
-  const showRightBurger = !(isAuthed && isDashboardArea);
+  const showRightBurger = true;
 
   // Kreisais slot
   const leftSlot = (() => {

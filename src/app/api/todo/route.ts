@@ -16,13 +16,29 @@ function dateOnlyToUTCNoon(dateOnly: string): Date {
 }
 
 // GET /api/todo  -> list my tasks
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions);
     const userId = requireUserId(session);
 
+    const { searchParams } = new URL(req.url);
+    const due = searchParams.get("due"); // YYYY-MM-DD (optional)
+
+    const where: any = { userId };
+
+    if (due) {
+      // pārbaude
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(due)) {
+        return NextResponse.json({ error: "Bad 'due' format" }, { status: 400 });
+      }
+      // atlasām DIENAS intervālu (UTC), jo DB glabā Date ar laiku (pie tevis – UTC noon)
+      const start = new Date(`${due}T00:00:00.000Z`);
+      const end   = new Date(`${due}T23:59:59.999Z`);
+      where.due = { gte: start, lte: end };
+    }
+
     const items = await prisma.todoItem.findMany({
-      where: { userId },
+      where,
       orderBy: [{ done: "asc" }, { updatedAt: "desc" }],
       select: {
         id: true, title: true, note: true, done: true, priority: true,

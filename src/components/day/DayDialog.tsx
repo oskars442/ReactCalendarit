@@ -12,6 +12,37 @@ import WorkDiaryModal from "@/components/WorkDiaryModal";
 import { addForDate as addGrocery } from "@/services/groceries";
 import { create as addTodo } from "@/services/todos";
 import { createRecurringYearly } from "@/services/recurring";
+import holidays2025 from "@/features/data/holidays-2025.json";
+
+
+type HolidayType = "holiday" | "preHoliday" | "movedDay";
+type Holiday = {
+  date: string;            // "YYYY-MM-DD"
+  title: string;
+  type: HolidayType;
+  shortHours?: number;     // piemēram 7
+  description?: string;
+};
+
+const HOLIDAY_MAP = new Map<string, Holiday>(
+  (holidays2025 as Holiday[]).map(h => [h.date, h])
+);
+
+function getHoliday(iso: string): Holiday | undefined {
+  return HOLIDAY_MAP.get(iso);
+}
+
+function holidayBadge(h: Holiday) {
+  switch (h.type) {
+    case "holiday":    return { text: "BRĪVS",     cls: "bg-red-600 text-white" };
+    case "preHoliday": return { text: `${h.shortHours ?? 7}h`, cls: "bg-amber-500 text-black" };
+    case "movedDay":   return { text: "PĀRCELTA",  cls: "bg-sky-600 text-white" };
+    default:           return null;
+  }
+}
+
+/* ------------------------- tiny fetch helper ------------------------- */
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 /* -------------------------- small UI helper -------------------------- */
 function ColorSwatch({
@@ -38,7 +69,6 @@ function ColorSwatch({
 }
 
 /* ------------------------------ data hook --------------------------- */
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 function useDay(date: ISODate | null) {
   const key = date ? `/api/daylog?date=${date}` : null;
   return useSWR<{ dayLog: DayLog | null; occurrences: RecurringEvent[] }>(
@@ -51,14 +81,147 @@ function useDay(date: ISODate | null) {
 /* ----------------------------- i18n helper -------------------------- */
 function useTx() {
   const t = useTranslations("day");
-  return (key: string, fallback: string) => {
-    try {
-      const val = t(key as any) as unknown as string;
-      return val && !val.includes(".") ? val : fallback;
-    } catch {
-      return fallback;
-    }
-  };
+  return (key: string, fallback: string) => t(key as any, { fallback });
+}
+
+/* =========================== Saved (left) =========================== */
+/** Vienkāršs kreisās kolonnas panelis ar dienas saglabātajiem ierakstiem */
+function SavedForDay({
+  dateISO,
+  occurrences,
+}: {
+  dateISO: ISODate;
+  occurrences: RecurringEvent[];
+}) {
+  const tx = useTx();
+
+  // --- API endpoints (adjust if needed)
+  const todosUrl = `/api/todo?due=${dateISO}`;
+  const from = `${dateISO} 00:00:00`;
+const to   = `${dateISO} 23:59:59`;
+const workUrl = `/api/work?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
+
+  // --- SWR dataseti (ja nav endpointu, droši izmet ārā konkrēto bloku)
+  const { data: tData, isLoading: tLoading } = useSWR<any>(todosUrl, fetcher);
+  const { data: wData, isLoading: wLoading } = useSWR<any>(workUrl, fetcher);
+
+ const todosRaw = Array.isArray(tData) ? tData : (tData?.items ?? []);
+const todos = (todosRaw as any[]).map((x) => ({
+  id: x.id ?? x._id,
+  title: x.title ?? x.text ?? "",           // <- nosaukums no title vai text
+  done: x.done ?? x.completed ?? false,     // <- atbalsta dažādus nosaukumus
+  priority: x.priority ?? x.prio ?? null,
+}));
+  const works: Array<{ id?: number | string; title?: string; project?: string; hours?: number }> =
+    Array.isArray(wData) ? wData : wData?.items ?? [];
+    const holiday = getHoliday(dateISO);
+const badge = holiday ? holidayBadge(holiday) : null;
+
+  return (
+    <div className="space-y-6">
+      {/* State from LV calendar (holiday / preHoliday / movedDay) */}
+{holiday && (
+  <section className="overflow-hidden rounded-2xl border border-neutral-200/70 dark:border-neutral-800/70 bg-white/70 dark:bg-neutral-900/70 shadow-sm p-4">
+    <div className="mb-2 flex items-center gap-2">
+      <span className="text-lg">📅</span>
+      <div className="text-sm font-semibold">Valsts kalendārs</div>
+      {badge && (
+        <span className={`ml-auto rounded px-2 py-0.5 text-xs font-medium ${badge.cls}`}>
+          {badge.text}
+        </span>
+      )}
+    </div>
+
+    <div className="text-sm">
+      <div className="font-medium">{holiday.title}</div>
+      {holiday.description && (
+        <div className="text-xs opacity-70 mt-0.5">{holiday.description}</div>
+      )}
+      {holiday.type === "preHoliday" && (
+        <div className="text-xs opacity-70 mt-0.5">
+          Saīsināta darba diena — {holiday.shortHours ?? 7} h
+        </div>
+      )}
+      {holiday.type === "movedDay" && (
+        <div className="text-xs opacity-70 mt-0.5">
+          Pārceltā darba diena (parasti sestdiena norādīta kā darba diena).
+        </div>
+      )}
+    </div>
+  </section>
+)}
+      {/* Recurring occurrences (from useDay) */}
+      <section className="overflow-hidden rounded-2xl border border-neutral-200/70 dark:border-neutral-800/70 bg-white/70 dark:bg-neutral-900/70 shadow-sm p-4">
+        <div className="text-sm font-semibold mb-2">🎉 {tx("occurrences", "Recurring today")}</div>
+        {occurrences?.length ? (
+          <ul className="space-y-1 text-sm">
+            {occurrences.map((o, idx) => (
+              <li key={o?.id ?? idx} className="flex items-start gap-2">
+                <span>•</span>
+                <div className="min-w-0">
+                  <div className="truncate">{(o as any)?.title ?? tx("noTitle", "Untitled")}</div>
+                  {(o as any)?.note && (
+                    <div className="text-xs opacity-70 truncate">{(o as any).note}</div>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm opacity-70">{tx("noOccurrences", "Nothing for today.")}</p>
+        )}
+      </section>
+
+
+      {/* To-Dos due this day */}
+      <section className="overflow-hidden rounded-2xl border border-neutral-200/70 dark:border-neutral-800/70 bg-white/70 dark:bg-neutral-900/70 shadow-sm p-4">
+        <div className="text-sm font-semibold mb-2">✅ {tx("todo", "To-Do")}</div>
+        {tLoading ? (
+          <p className="text-sm opacity-70">{tx("loading", "Loading…")}</p>
+        ) : todos?.length ? (
+          <ul className="space-y-1 text-sm">
+            {todos.map((t, i) => (
+              <li key={(t.id ?? i).toString()} className="flex items-center gap-2">
+                <span className="text-xs opacity-60">•</span>
+                <span className={t.done ? "line-through opacity-60" : ""}>{t.title}</span>
+                {t.priority && (
+                  <span className="ml-auto rounded border px-2 py-0.5 text-[10px] uppercase opacity-70">
+                    {t.priority}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm opacity-70">{tx("emptyTodos", "No tasks due today.")}</p>
+        )}
+      </section>
+
+      {/* Work diary entries for date */}
+      <section className="overflow-hidden rounded-2xl border border-neutral-200/70 dark:border-neutral-800/70 bg-white/70 dark:bg-neutral-900/70 shadow-sm p-4">
+        <div className="text-sm font-semibold mb-2">💼 {tx("workDiary", "Work Diary")}</div>
+        {wLoading ? (
+          <p className="text-sm opacity-70">{tx("loading", "Loading…")}</p>
+        ) : works?.length ? (
+          <ul className="space-y-1 text-sm">
+            {works.map((w, i) => (
+              <li key={(w.id ?? i).toString()} className="flex items-center gap-2">
+                <span className="text-xs opacity-60">•</span>
+                <div className="min-w-0">
+                  <div className="truncate">{w.title ?? w.project ?? tx("noTitle", "Untitled")}</div>
+                </div>
+                {typeof w.hours === "number" && (
+                  <span className="ml-auto text-xs opacity-70">{w.hours.toFixed(2)} h</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm opacity-70">{tx("emptyWork", "No entries yet.")}</p>
+        )}
+      </section>
+    </div>
+  );
 }
 
 /* =============================== Dialog ============================= */
@@ -90,11 +253,10 @@ export default function DayDialog({
       if (baseLog) {
         setDraft({
           ...baseLog,
-          // TS: cast uz ISODate, jo template-literal tips
           date: normISO(baseLog.date as unknown as string),
         });
       } else {
-        setDraft({ date }); // jau ISO no kalendāra/overview
+        setDraft({ date }); // ISO no kalendāra
       }
       setYearlyTitle("");
     }
@@ -112,18 +274,17 @@ export default function DayDialog({
     return `${weekday}, ${rest}`;
   }, [date, locale]);
 
-  // Enable "Save" only if color actually changed (string|null vs base)
+  // Enable "Save" only if color actually changed
   const canSave = useMemo(() => {
     if (!draft) return false;
-    const before = baseLog?.dayColor ?? undefined; // undefined = nav bijis
-    const after = draft.dayColor; // string | null | undefined
+    const before = baseLog?.dayColor ?? undefined;
+    const after = draft.dayColor;
     return after !== before;
   }, [draft, baseLog]);
 
   const saveDay = useCallback(async () => {
     if (!draft) return;
 
-    // —— vieglā validācija ——
     const isISO = (s: string) => /^\d{4}-\d{2}-\d{2}$/.test(s);
     const isHex = (s: string) => /^#[0-9a-fA-F]{6}$/.test(s);
 
@@ -131,21 +292,18 @@ export default function DayDialog({
       ? (draft.date as ISODate)
       : normISO(draft.date as unknown as string);
 
-    // build payload
     const payload: any = { date: dateISO };
     if (draft.dayColor !== undefined) {
       if (draft.dayColor !== null && !isHex(draft.dayColor)) {
         alert(tx("validationError", "Please fix the highlighted fields."));
         return;
       }
-      payload.dayColor = draft.dayColor; // string vai null => notīrīt
+      payload.dayColor = draft.dayColor;
     }
 
     const key = `/api/daylog?date=${dateISO}`;
-
-    // optimistic cache
     try {
-      mutate(key, { dayLog: { date: dateISO, dayColor: draft.dayColor }, occurrences: [] }, false);
+      mutate(key, { dayLog: { date: dateISO, dayColor: draft.dayColor }, occurrences: data?.occurrences ?? [] }, false);
     } catch {}
 
     const res = await fetch("/api/daylog", {
@@ -177,7 +335,7 @@ export default function DayDialog({
     );
 
     onOpenChange(false);
-  }, [draft, onOpenChange, tx]);
+  }, [draft, onOpenChange, tx, data?.occurrences]);
 
   const addYearly = useCallback(async () => {
     if (!date) return;
@@ -207,7 +365,7 @@ export default function DayDialog({
           className="
             fixed inset-x-0 bottom-0
             sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2
-            w-full sm:w-[min(96vw,880px)]
+            w-full sm:w-[min(96vw,980px)]
             h-[88vh] sm:h-auto sm:max-h-[85vh]
             rounded-t-3xl sm:rounded-2xl
             bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100
@@ -222,9 +380,6 @@ export default function DayDialog({
                 <Dialog.Title className="truncate text-base sm:text-lg font-semibold">
                   {dateHeader}
                 </Dialog.Title>
-                <p id="day-dialog-desc" className="text-xs sm:text-sm opacity-70">
-                  {tx("dialogSubtitleLite", "Pick a color, add quick items, and save.")}
-                </p>
               </div>
               <Dialog.Close asChild>
                 <button
@@ -239,93 +394,112 @@ export default function DayDialog({
 
           {/* BODY */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-            <div className="grid grid-cols-1 gap-4 sm:gap-6">
-              {/* Day color */}
-              <section className="overflow-hidden rounded-2xl border border-neutral-200/70 dark:border-neutral-800/70 bg-white/70 dark:bg-neutral-900/70 shadow-sm p-4">
-                <div className="text-sm font-semibold mb-2">🎨 {tx("dayColor", "Day color")}</div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {(
-                    [
-                      "#0ea5e9", // sky-500
-                      "#10b981", // emerald-500
-                      "#f59e0b", // amber-500
-                      "#ef4444", // red-500
-                      "#8b5cf6", // violet-500
-                      "#14b8a6", // teal-500
-                      "#64748b", // slate-500
-                      "#111827", // neutral-900
-                    ] as HexColor[]
-                  ).map((c) => (
-                    <ColorSwatch
-                      key={c}
-                      value={c}
-                      selected={dl?.dayColor === c}
-                      onSelect={(v) => setDraft((d) => ({ ...(d ?? { date: (date as ISODate) }), dayColor: v }))}
-                    />
-                  ))}
+  {/* Mobilajā → kolonnas virknējas viena zem otras (kreisā vispirms),
+      LG+ → pārslēdzamies uz 2-kolonu grid */}
+  <div className="flex flex-col lg:grid lg:grid-cols-2 gap-4 sm:gap-6">
 
-                  {/* custom color */}
-                  <label className="ml-2 inline-flex items-center gap-2 text-sm">
-                    <input
-                      type="color"
-                      value={(dl?.dayColor ?? "#0ea5e9") as HexColor}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        const v = e.currentTarget.value as HexColor;
-                        setDraft((d) => ({ ...(d ?? { date: (date as ISODate) }), dayColor: v }));
-                      }}
-                      className="h-7 w-10 cursor-pointer rounded border border-black/10"
-                    />
-                    <span className="text-xs opacity-70">{tx("custom", "Custom")}</span>
-                  </label>
+    {/* LEFT: Saved for this day (mobilajā pirmais) */}
+    <div className="order-1 lg:order-1">
+      {date && (
+        <SavedForDay
+          dateISO={date}
+          occurrences={data?.occurrences ?? []}
+        />
+      )}
+    </div>
 
-                  {/* clear */}
-                  {dl?.dayColor !== undefined && (
-                    <button
-                      type="button"
-                      className="ml-auto rounded-md border px-2 py-1 text-xs hover:bg-neutral-50 dark:hover:bg-neutral-900"
-                      onClick={() =>
-                        setDraft((d) => ({ ...(d ?? { date: (date as ISODate) }), dayColor: null }))
-                      }
-                    >
-                      {tx("clear", "Clear")}
-                    </button>
-                  )}
-                </div>
-              </section>
+    {/* RIGHT: create / edit blocks (mobilajā otrais) */}
+    <div className="order-2 lg:order-2 space-y-6">
+      {/* Day color */}
+      <section className="overflow-hidden rounded-2xl border border-neutral-200/70 dark:border-neutral-800/70 bg-white/70 dark:bg-neutral-900/70 shadow-sm p-4">
+        <div className="text-sm font-semibold mb-2">🎨 {tx("dayColor", "Day color")}</div>
+        <div className="flex items-center gap-2 flex-wrap">
+          {(
+            [
+              "#0ea5e9", // sky-500
+              "#10b981", // emerald-500
+              "#f59e0b", // amber-500
+              "#ef4444", // red-500
+              "#8b5cf6", // violet-500
+              "#14b8a6", // teal-500
+              "#64748b", // slate-500
+              "#111827", // neutral-900
+            ] as HexColor[]
+          ).map((c) => (
+            <ColorSwatch
+              key={c}
+              value={c}
+              selected={dl?.dayColor === c}
+              onSelect={(v) =>
+                setDraft((d) => ({ ...(d ?? { date: (date as ISODate) }), dayColor: v }))
+              }
+            />
+          ))}
 
-              {/* Actions */}
-              <section className="overflow-hidden rounded-2xl border border-neutral-200/70 dark:border-neutral-800/70 bg-white/70 dark:bg-neutral-900/70 shadow-sm p-4">
-                {date && (
-                  <QuickActions
-                    dateISO={date}
-                    onAnyAdd={() => mutate(`/api/daylog?date=${date}`)}
-                  />
-                )}
-              </section>
+          {/* custom color */}
+          <label className="ml-2 inline-flex items-center gap-2 text-sm">
+            <input
+              type="color"
+              value={(dl?.dayColor ?? "#0ea5e9") as HexColor}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                const v = e.currentTarget.value as HexColor;
+                setDraft((d) => ({ ...(d ?? { date: (date as ISODate) }), dayColor: v }));
+              }}
+              className="h-7 w-10 cursor-pointer rounded border border-black/10"
+            />
+            <span className="text-xs opacity-70">{tx("custom", "Custom")}</span>
+          </label>
 
-              {/* Yearly events */}
-              <section className="overflow-hidden rounded-2xl border border-neutral-200/70 dark:border-neutral-800/70 bg-white/70 dark:bg-neutral-900/70 shadow-sm p-4">
-                <div className="text-sm font-semibold mb-2">🎉 {tx("yearlyEvents", "Yearly Events")}</div>
-                <div className="flex items-center gap-2">
-                  <input
-                    aria-label="yearly-title"
-                    className="flex-1 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 outline-none focus:ring-2 focus:ring-violet-500"
-                    placeholder={tx("eventPlaceholder", "Event title…")}
-                    value={yearlyTitle}
-                    onChange={(e) => setYearlyTitle(e.target.value)}
-                  />
-                  <button
-                    aria-label={tx("saveYearly", "Save yearly event")}
-                    className="inline-flex items-center gap-2 rounded-lg px-3 py-2 bg-violet-600 text-white hover:bg-violet-700"
-                    onClick={addYearly}
-                    title={tx("saveYearly", "Save yearly event")}
-                  >
-                    💾 <span className="hidden sm:inline">{tx("save", "Save")}</span>
-                  </button>
-                </div>
-              </section>
-            </div>
-          </div>
+          {/* clear */}
+          {dl?.dayColor !== undefined && (
+            <button
+              type="button"
+              className="ml-auto rounded-md border px-2 py-1 text-xs hover:bg-neutral-50 dark:hover:bg-neutral-900"
+              onClick={() =>
+                setDraft((d) => ({ ...(d ?? { date: (date as ISODate) }), dayColor: null }))
+              }
+            >
+              {tx("clear", "Clear")}
+            </button>
+          )}
+        </div>
+      </section>
+
+      {/* Actions */}
+      <section className="overflow-hidden rounded-2xl border border-neutral-200/70 dark:border-neutral-800/70 bg-white/70 dark:bg-neutral-900/70 shadow-sm p-4">
+        {date && (
+          <QuickActions
+            dateISO={date}
+            onAnyAdd={() => mutate(`/api/daylog?date=${date}`)}
+          />
+        )}
+      </section>
+
+      {/* Yearly events */}
+      <section className="overflow-hidden rounded-2xl border border-neutral-200/70 dark:border-neutral-800/70 bg-white/70 dark:bg-neutral-900/70 shadow-sm p-4">
+        <div className="text-sm font-semibold mb-2">🎉 {tx("yearlyEvents", "Yearly Events")}</div>
+        <div className="flex items-center gap-2">
+          <input
+            aria-label="yearly-title"
+            className="flex-1 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 outline-none focus:ring-2 focus:ring-violet-500"
+            placeholder={tx("eventPlaceholder", "Event title…")}
+            value={yearlyTitle}
+            onChange={(e) => setYearlyTitle(e.target.value)}
+          />
+          <button
+            aria-label={tx("saveYearly", "Save yearly event")}
+            className="inline-flex items-center gap-2 rounded-lg px-3 py-2 bg-violet-600 text-white hover:bg-violet-700"
+            onClick={addYearly}
+            title={tx("saveYearly", "Save yearly event")}
+          >
+            💾 <span className="hidden sm:inline">{tx("save", "Save")}</span>
+          </button>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
 
           {/* FOOTER */}
           <div className="border-t border-neutral-200/70 dark:border-neutral-800/70 bg-white/90 dark:bg-neutral-950/90 px-4 sm:px-6 py-3 sm:py-4">

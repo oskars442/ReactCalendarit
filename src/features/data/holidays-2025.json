@@ -1,0 +1,131 @@
+[
+  {
+    "date": "2025-01-01",
+    "title": "Jaungada diena",
+    "type": "holiday",
+    "description": "Gada pirmā diena — oficiāla valsts brīvdiena."
+  },
+  {
+    "date": "2025-04-17",
+    "title": "Pirmssvētku diena",
+    "type": "preHoliday",
+    "shortHours": 7,
+    "description": "Darba diena saīsināta par 1 stundu pirms Lieldienām."
+  },
+  {
+    "date": "2025-04-18",
+    "title": "Lielā piektdiena",
+    "type": "holiday",
+    "description": "Kristīgā Lieldienu svētku diena."
+  },
+  {
+    "date": "2025-04-20",
+    "title": "Pirmās Lieldienas",
+    "type": "holiday"
+  },
+  {
+    "date": "2025-04-21",
+    "title": "Otrās Lieldienas",
+    "type": "holiday"
+  },
+  {
+    "date": "2025-04-30",
+    "title": "Pirmssvētku diena",
+    "type": "preHoliday",
+    "shortHours": 7
+  },
+  {
+    "date": "2025-05-01",
+    "title": "Darba svētki, Satversmes sapulces diena",
+    "type": "holiday"
+  },
+  {
+    "date": "2025-05-02",
+    "title": "Pārcelta darba diena",
+    "type": "movedDay",
+    "description": "Valsts iestādes pārcēlušas darba dienu uz 10.05.2025."
+  },
+  {
+    "date": "2025-05-04",
+    "title": "Neatkarības deklarācijas diena",
+    "type": "holiday"
+  },
+  {
+    "date": "2025-05-05",
+    "title": "Pārceltā brīvdiena (no 04.05)",
+    "type": "holiday"
+  },
+  {
+    "date": "2025-05-10",
+    "title": "Pārceltā darba diena",
+    "type": "movedDay"
+  },
+  {
+    "date": "2025-05-11",
+    "title": "Mātes diena",
+    "type": "holiday"
+  },
+  {
+    "date": "2025-06-08",
+    "title": "Vasarsvētki",
+    "type": "holiday"
+  },
+  {
+    "date": "2025-06-23",
+    "title": "Līgo diena",
+    "type": "holiday"
+  },
+  {
+    "date": "2025-06-24",
+    "title": "Jāņu diena",
+    "type": "holiday"
+  },
+  {
+    "date": "2025-11-08",
+    "title": "Pārceltā darba diena (no 17.11)",
+    "type": "movedDay"
+  },
+  {
+    "date": "2025-11-17",
+    "title": "Pirmssvētku diena",
+    "type": "preHoliday",
+    "shortHours": 7
+  },
+  {
+    "date": "2025-11-18",
+    "title": "Latvijas Republikas proklamēšanas diena",
+    "type": "holiday"
+  },
+  {
+    "date": "2025-12-23",
+    "title": "Pirmssvētku diena",
+    "type": "preHoliday",
+    "shortHours": 7
+  },
+  {
+    "date": "2025-12-24",
+    "title": "Ziemassvētku vakars",
+    "type": "holiday"
+  },
+  {
+    "date": "2025-12-25",
+    "title": "Pirmie Ziemassvētki",
+    "type": "holiday"
+  },
+  {
+    "date": "2025-12-26",
+    "title": "Otrie Ziemassvētki",
+    "type": "holiday"
+  },
+  {
+    "date": "2025-12-30",
+    "title": "Pirmssvētku diena",
+    "type": "preHoliday",
+    "shortHours": 7
+  },
+  {
+    "date": "2025-12-31",
+    "title": "Vecgada diena",
+    "type": "holiday"
+  }
+]

@@ -82,8 +82,8 @@
 "stats": "Статистика",
 "workout": "Тренировка",
 "babyTracker": "Трекер малыша",
- "projects": "Projects",
- "profile" : "Mans Profils"
+ "projects": "Проекты",
+ "profile": "Мой профиль"
 },
 
 "auth": {
@@ -217,10 +217,10 @@
 
 "groceries": {
       "lists": {
-      "daily": "Ikdienišķais saraksts",
-      "longterm": "ilgtermiņa saraksts"
+       "daily": "Ежедневный список",
+      "longterm": "Долгосрочный список"
     },
-     "currentList": "Pašreizējais saraksts",
+     "currentList": "Текущий список",
 "loading": "Загрузка списка покупок…",
 "title": "Покупки",
 "subtitle": "Добавляйте товары в список",
@@ -428,33 +428,43 @@
 },
 
 "day": {
-"dialogSubtitleLite": "Выберите цвет, добавьте быстрые элементы и сохраните.",
-"close": "Закрыть",
-"saveDayLog": "Сохранить дневник дня",
-"validationError": "Исправьте выделенные поля.",
-"saveError": "Не удалось сохранить. Попробуйте снова.",
-"recurringError": "Не удалось сохранить повторяющееся событие.",
-"dayColor": "Цвет дня",
-"custom": "Свой",
-"clear": "Очистить",
-"groceries": "Покупки",
-"todo": "Задачи",
-"workDiary": "Рабочий дневник",
-"productPlaceholder": "Добавить товар…",
-"todoPlaceholder": "Введите и нажмите Enter…",
-"add": "Добавить",
-"low": "Низк.",
-"med": "Средн.",
-"high": "Высок.",
-"new": "Новая",
-"yearlyEvents": "Ежегодные события",
-"eventPlaceholder": "Название события…",
-"save": "Сохранить",
-"saveYearly": "Сохранить ежегодное событие",
-"toastWorkSaved": "Рабочий дневник сохранён",
-"toastGroceriesOk": "Сохранено в «Покупки»",
-"toastTodosOk": "Сохранено в «Задачи»",
-"toastGenericErr": "Не удалось сохранить"
+  "dialogSubtitleLite": "Выберите цвет, добавьте быстрые элементы и сохраните.",
+  "close": "Закрыть",
+  "saveDayLog": "Сохранить запись дня",
+  "validationError": "Пожалуйста, исправьте выделенные поля.",
+  "saveError": "Не удалось сохранить. Попробуйте снова.",
+  "recurringError": "Не удалось сохранить повторяющееся событие.",
+
+  "dayColor": "Цвет дня",
+  "custom": "Пользовательский",
+  "clear": "Очистить",
+
+  "occurrences": "Ежегодные события сегодня",
+  "noOccurrences": "Сегодня нет повторяющихся событий.",
+  "loading": "Загрузка…",
+
+  "todo": "Список дел",
+  "todoPlaceholder": "Напишите и нажмите Enter…",
+  "emptyTodos": "На сегодня нет задач.",
+  "low": "Низкий",
+  "med": "Средний",
+  "high": "Высокий",
+
+  "workDiary": "Рабочий дневник",
+  "emptyWork": "Нет записей.",
+
+  "yearlyEvents": "Ежегодные события",
+  "eventPlaceholder": "Название события…",
+  "save": "Сохранить",
+  "saveYearly": "Сохранить ежегодное событие",
+
+  "new": "Новая",
+  "toastWorkSaved": "Запись сохранена",
+  "toastTodosOk": "Добавлено в список дел",
+  "toastGenericErr": "Не удалось сохранить",
+  "add": "Добавить",
+  "groceries": "Покупки",
+  "productPlaceholder": "Добавьте продукт…"
 },
  "suggestions": {
     "title": "Предложите улучшение",

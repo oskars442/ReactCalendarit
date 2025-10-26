@@ -434,28 +434,38 @@
     "saveDayLog": "Saglabāt dienas ierakstu",
     "validationError": "Lūdzu, izlabo iezīmētos laukus.",
     "saveError": "Neizdevās saglabāt. Mēģini vēlreiz.",
-    "recurringError": "Neizdevās saglabāt periodisku notikumu.",
+    "recurringError": "Neizdevās saglabāt ikgadējo notikumu.",
+
     "dayColor": "Dienas krāsa",
     "custom": "Pielāgota",
     "clear": "Notīrīt",
-    "groceries": "Iepirkumu grozs",
+
+    "occurrences": "Šodienas ikgadējie notikumi",
+    "noOccurrences": "Šodien nav periodisku notikumu.",
+    "loading": "Ielādē…",
+
     "todo": "Darāmo darbu saraksts",
-    "workDiary": "Darba dienasgrāmata",
-    "productPlaceholder": "Pievieno produktu…",
     "todoPlaceholder": "Raksti un spied Enter…",
-    "add": "Pievienot",
+    "emptyTodos": "Šodien nav uzdevumu.",
     "low": "Zema",
     "med": "Vidēja",
     "high": "Augsta",
-    "new": "Jauns",
+
+    "workDiary": "Darba dienasgrāmata",
+    "emptyWork": "Nav ierakstu.",
+
     "yearlyEvents": "Ikgadējie notikumi",
     "eventPlaceholder": "Notikuma nosaukums…",
     "save": "Saglabāt",
     "saveYearly": "Saglabāt ikgadēju notikumu",
+
+    "new": "Jauns",
     "toastWorkSaved": "Darba ieraksts saglabāts",
-    "toastGroceriesOk": "Pievienots Iepirkumiem",
     "toastTodosOk": "Pievienots Uzdevumiem",
-    "toastGenericErr": "Neizdevās saglabāt"
+    "toastGenericErr": "Neizdevās saglabāt",
+"add" : "Pievienot",
+"groceries" : "Iepirkumi",
+"productPlaceholder": "Pievieno produktu…"
   },
   "suggestions": {
   "title": "Dalies ar uzlabojumu",

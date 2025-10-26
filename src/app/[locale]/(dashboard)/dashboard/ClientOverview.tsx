@@ -11,6 +11,7 @@ import DayDialog from "@/components/day/DayDialog";
 import type { ISODate } from "@/lib/types";
 import lvNamedays from "@/features/overview/namedays/lv_namedays.json";
 import { kindIcon } from "@/lib/eventIcons";
+import holidays2025 from "@/features/data/holidays-2025.json";
 
 type UiKind = keyof typeof kindIcon;
 type UiPriority = "low" | "med" | "high";
@@ -242,6 +243,21 @@ const addDays = (d: Date, n: number) => {
   x.setHours(0, 0, 0, 0);
   return x;
 };
+type HolidayJson = { date: string; title: string; type: "holiday"|"preHoliday"|"movedDay"; shortHours?: number; description?: string };
+
+function holidaysInRange(fromISO: string, toISO: string): ApiItem[] {
+  // Šeit strādājam tikai ar 2025. gadu; ja vajag – paplašini pēc gada
+  const list = (holidays2025 as HolidayJson[])
+    .filter(h => h.date >= fromISO && h.date <= toISO)
+    .map((h) => ({
+      id: `holiday-${h.date}`,
+      title: h.title,
+      kind: "recurring-yearly" as UiKind, // tavs Row jau rāda 🎉 šim kind
+      dateISO: h.date,
+      // Nav konkrēta laika/prioritātes
+    }));
+  return list;
+}
 
 /* --------------------------- Main client component ------------------------- */
 export default function ClientOverview() {
@@ -294,25 +310,30 @@ export default function ClientOverview() {
   const [all, setAll] = useState<ApiItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const from = toISO(todayDate);
-    const to = toISO(addDays(todayDate, 30));
+useEffect(() => {
+  const from = toISO(todayDate);
+  const to = toISO(addDays(todayDate, 30));
 
-    (async () => {
-      try {
-        const res = await fetch(`/api/overview?from=${from}&to=${to}`, { cache: "no-store" });
-        if (!res.ok) {
-          setAll([]);
-          return;
-        }
-        const json = await res.json().catch(() => ({ items: [] }));
-        setAll((json?.items ?? []) as ApiItem[]);
-      } finally {
-        setLoading(false);
+  (async () => {
+    try {
+      const res = await fetch(`/api/overview?from=${from}&to=${to}`, { cache: "no-store" });
+      const json = res.ok ? await res.json().catch(() => ({ items: [] })) : { items: [] };
+
+      // ➕ Pievienojam svētkus periodā
+      const holidayItems = holidaysInRange(from, to);
+
+      // 🔀 Apvienojam: API + svētki (un izvairāmies no dublikātiem pēc id)
+      const mergedById = new Map<string, ApiItem>();
+      for (const it of [...(json.items as ApiItem[]), ...holidayItems]) {
+        mergedById.set(it.id, it);
       }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      setAll(Array.from(mergedById.values()));
+    } finally {
+      setLoading(false);
+    }
+  })();
+// eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
 
   // ---------------- Rolling windows (exclusive) ----------------
   const next7ISO  = useMemo(() => toISO(addDays(todayDate, 7)), [todayDate]);

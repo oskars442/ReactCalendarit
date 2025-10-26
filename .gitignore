@@ -50,3 +50,4 @@ print-tree.mjs
 .env copy
 readme.txt
 !.env.example 
+structure.txt
