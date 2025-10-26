@@ -93,6 +93,7 @@ useEffect(() => {
     "workout",
     "projects",
     "baby-tracker", 
+    "profile",
   ]);
   const isDashboardArea = DASHBOARD_SEGS.has(seg1);
 
@@ -360,6 +361,7 @@ useEffect(() => {
                   { segment: "stats", key: "stats" },
                   { segment: "projects", key: "projects" },
                   { segment: "baby-tracker", key: "babyTracker" },
+                  { segment: "profile", key: "profile" },
                 ].map(({ segment, key }) => {
                   const href = `/${locale}/${segment}`;
                   const active = pathname === href || pathname.startsWith(href + "/");

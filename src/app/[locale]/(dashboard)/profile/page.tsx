@@ -7,11 +7,18 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 
-/* ───────────────────────────────── helpers ───────────────────────────────── */
+/* ───────────────────────── i18n helpers ───────────────────────── */
 
 type Locale = "lv" | "en" | "ru";
 const LOCALES: readonly Locale[] = ["lv", "en", "ru"] as const;
 
+async function loadMessages(loc: Locale) {
+  // vienkārša dinamiskā ielāde no /lib/i18n/messages
+  const mod = await import(`@/lib/i18n/messages/${loc}.json`);
+  return mod.default as Record<string, any>;
+}
+
+// droši paņem locale no referera (server actions)
 function getLocaleFromRef(ref: string | null): Locale {
   if (!ref) return "lv";
   try {
@@ -22,21 +29,25 @@ function getLocaleFromRef(ref: string | null): Locale {
   }
 }
 
-/* ───────────────────────────── pieejamie moduļi ─────────────────────────── */
+// “mini translator”: ņem vērtību pēc ceļa "profile.x.y"
+function pick(obj: any, path: string, fallback?: string) {
+  return path.split(".").reduce((acc: any, key) => (acc?.[key] ?? undefined), obj) ?? fallback ?? path;
+}
 
-const MODULES = [
-  { key: "calendar",  label: "Kalendārs" },
-  { key: "diary",     label: "Darba dienasgrāmata" },
-  { key: "tasks",     label: "Uzdevumi" },
-  { key: "workouts",  label: "Treniņi" },
-  { key: "shopping",  label: "Iepirkumi" },
-  { key: "weather",   label: "Laikapstākļi" },
-  { key: "baby",      label: "Mazuļa izsekošana" },
-  { key: "stats",     label: "Statistika (Premium)" },
-  { key: "projects",  label: "Projekti" },
+/* ───────────── pieejamie moduļi (tikai atslēgas!) ───────────── */
+
+const MODULE_KEYS = [
+  "calendar",
+  "diary",
+  "tasks",
+  "workouts",
+  "shopping",
+  "weather",
+  "baby",
+  "stats",
+  "projects",
 ] as const;
-
-type ToolKey = (typeof MODULES)[number]["key"];
+type ToolKey = typeof MODULE_KEYS[number];
 type Tools = Record<ToolKey, boolean>;
 
 /* ───────────────────────── server actions ───────────────────────── */
@@ -47,11 +58,9 @@ async function saveTools(formData: FormData) {
   const id = Number((session?.user as any)?.id);
   if (!id) redirect("/login");
 
-  // nolasām checkboxus
   const patch: Partial<Tools> = {};
-  for (const { key } of MODULES) {
-    const v = formData.get(`tools.${key}`);
-    (patch as any)[key] = v === "on";
+  for (const key of MODULE_KEYS) {
+    (patch as any)[key] = formData.get(`tools.${key}`) === "on";
   }
 
   await prisma.userToolSettings.upsert({
@@ -60,7 +69,6 @@ async function saveTools(formData: FormData) {
     create: { userId: id, ...(patch as Tools) },
   });
 
-  // pārzīmē layout (lai Sidebar saņem jaunos tools) un atgriež uz profilu
   const locale = getLocaleFromRef((await headers()).get("referer"));
   revalidatePath(`/${locale}/(dashboard)`, "layout");
   redirect(`/${locale}/profile`);
@@ -76,17 +84,14 @@ async function changePassword(formData: FormData) {
   const next = String(formData.get("next") || "");
   const confirm = String(formData.get("confirm") || "");
 
-  if (next.length < 8) throw new Error("Parolei jābūt vismaz 8 rakstzīmēm.");
-  if (next !== confirm) throw new Error("Jaunā parole un apstiprinājums nesakrīt.");
+  if (next.length < 8) throw new Error("profile.errors.passwordMin");
+  if (next !== confirm) throw new Error("profile.errors.passwordMismatch");
 
-  const user = await prisma.user.findUnique({
-    where: { id },
-    select: { passwordHash: true },
-  });
+  const user = await prisma.user.findUnique({ where: { id }, select: { passwordHash: true } });
   if (!user) redirect("/login");
 
   const ok = await bcrypt.compare(current, user.passwordHash);
-  if (!ok) throw new Error("Pašreizējā parole nav pareiza.");
+  if (!ok) throw new Error("profile.errors.passwordWrong");
 
   const newHash = await bcrypt.hash(next, 12);
   await prisma.user.update({ where: { id }, data: { passwordHash: newHash } });
@@ -100,20 +105,26 @@ async function deleteAccount(formData: FormData) {
 
   const confirm = String(formData.get("confirm") || "");
   if (confirm !== "DELETE") {
-    throw new Error('Lūdzu ieraksti "DELETE", lai apstiprinātu dzēšanu.');
+    throw new Error("profile.delete.confirmError");
   }
 
-  // dzēšam lietotāju (saistītie dati tiks dzēsti atbilstoši relācijām)
   await prisma.user.delete({ where: { id } });
 
-  // izrakstīšanās bez NextAuth dialoga — uz mūsu “tilta” lapu
   const locale = getLocaleFromRef((await headers()).get("referer"));
   redirect(`/${locale}/signout-bridge`);
 }
 
-/* ───────────────────────────── lapas renderis ───────────────────────────── */
+/* ───────────────────────────── Page (Server) ───────────────────────────── */
 
-export default async function ProfilePage() {
+export default async function ProfilePage(props: {
+  params: Promise<{ locale: Locale }> | { locale: Locale };
+}) {
+  // locale no din. maršruta
+  const resolved = await Promise.resolve(props.params);
+  const locale = LOCALES.includes(resolved.locale) ? resolved.locale : "lv";
+  const messages = await loadMessages(locale);
+  const t = (k: string, fb?: string) => pick(messages, `profile.${k}`, fb);
+
   const session = await getServerSession(authOptions);
   const id = Number((session?.user as any)?.id);
   if (!id) redirect("/login");
@@ -124,7 +135,6 @@ export default async function ProfilePage() {
   });
   if (!user) redirect("/login");
 
-  // nodrošinām, ka iestatījumi vienmēr eksistē
   const settings = await prisma.userToolSettings.upsert({
     where: { userId: id },
     update: {},
@@ -135,10 +145,13 @@ export default async function ProfilePage() {
     },
   });
 
+  // kartējam locale uz “reālu” BCP47 tagu datuma formatam
+  const dateLocale = locale === "en" ? "en-GB" : locale === "ru" ? "ru-RU" : "lv-LV";
+
   return (
     <div className="mx-auto max-w-3xl p-6 space-y-10">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold">Mans profils</h1>
+        <h1 className="text-2xl font-semibold">{t("title")}</h1>
         <p className="text-sm text-neutral-500">
           {user.firstName || user.lastName
             ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()
@@ -146,27 +159,25 @@ export default async function ProfilePage() {
         </p>
       </header>
 
-      {/* Rīki / moduļi */}
+      {/* Tools */}
       <section className="rounded-2xl border border-neutral-200/60 p-5 dark:border-neutral-800/70 bg-white/70 dark:bg-neutral-900/60">
-        <h2 className="text-lg font-medium mb-3">Rīku iestatījumi</h2>
-        <p className="text-sm text-neutral-500 mb-4">
-          Atzīmē, kuras sadaļas rādīt sānjoslā.
-        </p>
+        <h2 className="text-lg font-medium mb-3">{t("tools.title")}</h2>
+        <p className="text-sm text-neutral-500 mb-4">{t("tools.hint")}</p>
 
         <form action={saveTools} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {MODULES.map((m) => (
+            {MODULE_KEYS.map((key) => (
               <label
-                key={m.key}
+                key={key}
                 className="flex items-center gap-3 rounded-xl border border-neutral-200/60 p-3 dark:border-neutral-800/70"
               >
                 <input
                   type="checkbox"
-                  name={`tools.${m.key}`}
-                  defaultChecked={(settings as any)[m.key] as boolean}
+                  name={`tools.${key}`}
+                  defaultChecked={(settings as any)[key] as boolean}
                   className="h-5 w-5 accent-emerald-600"
                 />
-                <span className="text-sm">{m.label}</span>
+                <span className="text-sm">{t(`tools.items.${key}`)}</span>
               </label>
             ))}
           </div>
@@ -176,20 +187,20 @@ export default async function ProfilePage() {
               type="submit"
               className="inline-flex items-center rounded-xl bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700"
             >
-              Saglabāt
+              {t("actions.save")}
             </button>
           </div>
         </form>
       </section>
 
-      {/* Paroles maiņa */}
+      {/* Change password */}
       <section className="rounded-2xl border border-neutral-200/60 p-5 dark:border-neutral-800/70 bg-white/70 dark:bg-neutral-900/60">
-        <h2 className="text-lg font-medium mb-3">Paroles maiņa</h2>
-        <p className="text-sm text-neutral-500 mb-4">Drošībai parolei jābūt vismaz 8 rakstzīmēm.</p>
+        <h2 className="text-lg font-medium mb-3">{t("password.title")}</h2>
+        <p className="text-sm text-neutral-500 mb-4">{t("password.hint")}</p>
 
         <form action={changePassword} className="space-y-4 max-w-md">
           <div className="space-y-2">
-            <label className="text-sm">Pašreizējā parole</label>
+            <label className="text-sm">{t("password.current")}</label>
             <input
               type="password"
               name="current"
@@ -199,7 +210,7 @@ export default async function ProfilePage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm">Jaunā parole</label>
+            <label className="text-sm">{t("password.new")}</label>
             <input
               type="password"
               name="next"
@@ -210,7 +221,7 @@ export default async function ProfilePage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm">Apstiprini jauno paroli</label>
+            <label className="text-sm">{t("password.confirm")}</label>
             <input
               type="password"
               name="confirm"
@@ -225,23 +236,23 @@ export default async function ProfilePage() {
               type="submit"
               className="inline-flex items-center rounded-xl bg-sky-600 px-4 py-2 text-white hover:bg-sky-700"
             >
-              Mainīt paroli
+              {t("actions.changePassword")}
             </button>
           </div>
         </form>
       </section>
 
-      {/* Konta dzēšana */}
+      {/* Delete account */}
       <section className="rounded-2xl border border-rose-300/60 p-5 bg-rose-50 dark:bg-rose-950/20 dark:border-rose-800/70">
-        <h2 className="text-lg font-semibold text-rose-700 dark:text-rose-300">Dzēst kontu</h2>
+        <h2 className="text-lg font-semibold text-rose-700 dark:text-rose-300">
+          {t("delete.title")}
+        </h2>
         <p className="text-sm text-rose-700/80 dark:text-rose-300/80 mt-1">
-          Šī darbība ir neatgriezeniska. Tiks dzēsti visi ar profilu saistītie dati.
+          {t("delete.warning")}
         </p>
 
         <form action={deleteAccount} className="mt-4 space-y-3 max-w-md">
-          <label className="text-sm">
-            Ievadi <b>DELETE</b>, lai apstiprinātu:
-          </label>
+          <label className="text-sm">{t("delete.confirmLabel")}</label>
           <input
             type="text"
             name="confirm"
@@ -252,15 +263,15 @@ export default async function ProfilePage() {
             type="submit"
             className="inline-flex items-center rounded-xl bg-rose-600 px-4 py-2 text-white hover:bg-rose-700"
           >
-            Dzēst kontu
+            {t("delete.action")}
           </button>
         </form>
       </section>
 
       {/* Info */}
       <section className="text-xs text-neutral-500">
-        Konts izveidots:{" "}
-        {new Date(user.createdAt).toLocaleString("lv-LV", {
+        {t("createdAtPrefix")}{" "}
+        {new Date(user.createdAt).toLocaleString(dateLocale, {
           year: "numeric",
           month: "2-digit",
           day: "2-digit",

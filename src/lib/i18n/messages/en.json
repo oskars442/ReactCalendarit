@@ -611,7 +611,119 @@
 
     "weekdays": { "mon": "Mon", "tue": "Tue", "wed": "Wed", "thu": "Thu", "fri": "Fri", "sat": "Sat", "sun": "Sun" },
 
-    "editWorkout": "Edit workout",
-    "tpl": { "easy5k": "5K Easy Run", "push45": "Push Day 45m", "yoga30": "Yoga Flow 30m" }
+    "editWorkout": "Edit workout"
+  },
+   "babyTracker": {
+    "selectBabyPlaceholder": "Choose a baby…",
+    "appTitle": "Baby feeding tracker",
+    "selectBabyLabel": "Baby",
+    "selectBabyPl": "Choose a baby…",
+    "addBabyBtn": "+ Baby",
+    "newEntryBtn": "+ New entry",
+
+    "statFeedsToday": "Feeds today",
+    "statFeedsHint": "times",
+    "statAmountToday": "Total eaten today",
+    "statAmountHint": "ml/g",
+    "statLastFeed": "Last feed time",
+    "noDash": "—",
+
+    "timelineToday": "Today's timeline",
+    "noEntriesToday": "No entries today",
+
+    "history": "History",
+    "emptyHistory": "No data.",
+    "thDateTime": "Date / time",
+    "thFood": "Food",
+    "thAmount": "Amount",
+    "thWeight": "Weight",
+    "thNotes": "Notes",
+    "thActions": "Actions",
+    "editTitle": "Edit",
+    "deleteTitle": "Delete",
+
+    "statistics": "Statistics",
+    "range7d": "7d",
+    "range30d": "30d",
+    "range1y": "1y",
+
+    "chartAmountTitle": "Amount eaten per day",
+    "chartAmountSub": "ml / g",
+    "chartWeightTitle": "Weight changes",
+    "chartWeightSub": "kg",
+
+    "modalAddEntry": "New entry",
+    "modalEditEntry": "Edit entry",
+    "modalEntrySubtitle": "Add/edit feeding info and (optional) weight",
+    "modalAddBaby": "Add baby",
+
+    "formDateTime": "Date / time",
+    "formFoodType": "Food type",
+    "formAmount": "Amount",
+    "formWeightKgOpt": "Baby weight (optional)",
+    "formNotes": "Notes",
+    "notesPlaceholder": "e.g. ate fast, spit up, etc.",
+    "cancel": "Cancel",
+    "clear": "Clear",
+    "save": "Save",
+    "updateEntry": "Update entry",
+    "saving": "Saving…",
+    "confirmDelete": "Delete this entry?",
+
+    "foodMix": "Formula",
+    "foodBreastMilk": "Breast milk",
+    "foodPorridge": "Porridge",
+    "foodVeggies": "Vegetables",
+    "foodFruits": "Fruits",
+    "foodWater": "Water",
+    "foodOther": "Other…",
+
+    "babyName": "Name",
+    "babyBirth": "Birth date",
+    "placeholderBabyName": "e.g., Laura",
+    "saveBaby": "Save"
+  },
+  "profile": {
+    "title": "My profile",
+    "tools": {
+      "title": "Tools settings",
+      "hint": "Choose which sections to show in the sidebar.",
+      "items": {
+        "calendar": "Calendar",
+        "diary": "Work diary",
+        "tasks": "Tasks",
+        "workouts": "Workouts",
+        "shopping": "Shopping",
+        "weather": "Weather",
+        "baby": "Baby tracker",
+        "stats": "Statistics (Premium)",
+        "projects": "Projects"
+      }
+    },
+    "actions": {
+      "save": "Save",
+      "changePassword": "Change password"
+    },
+    "password": {
+      "title": "Change password",
+      "hint": "For security, your password must be at least 8 characters.",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password"
+    },
+    "delete": {
+      "title": "Delete account",
+      "warning": "This action is irreversible. All data associated with your profile will be deleted.",
+      "confirmLabel": "Type DELETE to confirm:",
+      "action": "Delete account"
+    },
+    "errors": {
+      "passwordMin": "Password must be at least 8 characters.",
+      "passwordMismatch": "New password and confirmation do not match.",
+      "passwordWrong": "The current password is incorrect.",
+      "confirmError": "Please type \"DELETE\" to confirm deletion."
+    },
+    "createdAtPrefix": "Account created:"
   }
+
 }

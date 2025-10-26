@@ -611,7 +611,118 @@
 
     "weekdays": { "mon": "Пн", "tue": "Вт", "wed": "Ср", "thu": "Чт", "fri": "Пт", "sat": "Сб", "sun": "Вс" },
 
-    "editWorkout": "Редактировать тренировку",
-    "tpl": { "easy5k": "5К лёгкий бег", "push45": "Push день 45м", "yoga30": "Йога 30м" }
+    "editWorkout": "Редактировать тренировку"
+  },
+  "babyTracker": {
+      "selectBabyPlaceholder": "Выберите малыша…",
+    "appTitle": "Учёт кормлений малыша",
+    "selectBabyLabel": "Малыш",
+    "selectBabyPl": "Выберите малыша…",
+    "addBabyBtn": "+ Ребёнок",
+    "newEntryBtn": "+ Новая запись",
+
+    "statFeedsToday": "Кормлений сегодня",
+    "statFeedsHint": "раз",
+    "statAmountToday": "Съедено сегодня",
+    "statAmountHint": "мл/г",
+    "statLastFeed": "Последнее кормление",
+    "noDash": "—",
+
+    "timelineToday": "Лента за сегодня",
+    "noEntriesToday": "Нет записей за сегодня",
+
+    "history": "История",
+    "emptyHistory": "Нет данных.",
+    "thDateTime": "Дата / время",
+    "thFood": "Еда",
+    "thAmount": "Количество",
+    "thWeight": "Вес",
+    "thNotes": "Заметки",
+    "thActions": "Действия",
+    "editTitle": "Редактировать",
+    "deleteTitle": "Удалить",
+
+    "statistics": "Статистика",
+    "range7d": "7д",
+    "range30d": "30д",
+    "range1y": "1г",
+
+    "chartAmountTitle": "Съедено по дням",
+    "chartAmountSub": "мл / г",
+    "chartWeightTitle": "Изменение веса",
+    "chartWeightSub": "кг",
+
+    "modalAddEntry": "Новая запись",
+    "modalEditEntry": "Редактировать запись",
+    "modalEntrySubtitle": "Добавьте/измените данные о кормлении и (опц.) вес",
+    "modalAddBaby": "Добавить ребёнка",
+
+    "formDateTime": "Дата / время",
+    "formFoodType": "Тип еды",
+    "formAmount": "Количество",
+    "formWeightKgOpt": "Вес ребёнка (опц.)",
+    "formNotes": "Заметки",
+    "notesPlaceholder": "напр.: ел быстро, срыгивал и т.д.",
+    "cancel": "Отмена",
+    "clear": "Очистить",
+    "save": "Сохранить",
+    "updateEntry": "Обновить запись",
+    "saving": "Сохраняю…",
+    "confirmDelete": "Удалить эту запись?",
+
+    "foodMix": "Смесь",
+    "foodBreastMilk": "Грудное молоко",
+    "foodPorridge": "Кашка",
+    "foodVeggies": "Овощи",
+    "foodFruits": "Фрукты",
+    "foodWater": "Вода",
+    "foodOther": "Другое…",
+
+    "babyName": "Имя",
+    "babyBirth": "Дата рождения",
+    "placeholderBabyName": "напр., Лаура",
+    "saveBaby": "Сохранить"
+  },
+   "profile": {
+    "title": "Мой профиль",
+    "tools": {
+      "title": "Настройки разделов",
+      "hint": "Выберите, какие разделы показывать в боковом меню.",
+      "items": {
+        "calendar": "Календарь",
+        "diary": "Рабочий дневник",
+        "tasks": "Задачи",
+        "workouts": "Тренировки",
+        "shopping": "Покупки",
+        "weather": "Погода",
+        "baby": "Трекер малыша",
+        "stats": "Статистика (Премиум)",
+        "projects": "Проекты"
+      }
+    },
+    "actions": {
+      "save": "Сохранить",
+      "changePassword": "Изменить пароль"
+    },
+    "password": {
+      "title": "Смена пароля",
+      "hint": "В целях безопасности пароль должен содержать минимум 8 символов.",
+      "current": "Текущий пароль",
+      "new": "Новый пароль",
+      "confirm": "Подтвердите новый пароль"
+    },
+    "delete": {
+      "title": "Удалить аккаунт",
+      "warning": "Это действие необратимо. Все данные, связанные с профилем, будут удалены.",
+      "confirmLabel": "Введите DELETE для подтверждения:",
+      "action": "Удалить аккаунт"
+    },
+    "errors": {
+      "passwordMin": "Пароль должен быть не короче 8 символов.",
+      "passwordMismatch": "Новый пароль и подтверждение не совпадают.",
+      "passwordWrong": "Неверный текущий пароль.",
+      "confirmError": "Пожалуйста, введите \"DELETE\" для подтверждения удаления."
+    },
+    "createdAtPrefix": "Аккаунт создан:"
   }
 }

@@ -5,7 +5,7 @@
 
 */
 -- DropIndex
-DROP INDEX "public"."BabyLog_userId_occurredAt_idx";
+DROP INDEX IF EXISTS "BabyLog_userId_occurredAt_idx";
 
 -- AlterTable
 ALTER TABLE "public"."BabyLog" ALTER COLUMN "amount" SET DATA TYPE INTEGER;

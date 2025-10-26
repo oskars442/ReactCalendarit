@@ -1,0 +1,259 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider          = "postgresql"
+  url               = env("DATABASE_URL") // pooled (6543)
+  directUrl         = env("DIRECT_URL") // direct (5432) for migrate deploy
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL") // ← nav vajadzīgs prod/deploy; var atstāt komentu vai dzēst
+}
+
+enum Recurrence {
+  MONTHLY
+  YEARLY
+}
+
+enum DiaryType {
+  task
+  job
+  meeting
+  other
+}
+
+enum DiaryStatus {
+  planned
+  in_progress
+  done
+  cancelled
+}
+
+enum TodoPriority {
+  low
+  med
+  high
+}
+
+enum GroceryListKind {
+  daily
+  longterm
+}
+
+enum SuggestionStatus {
+  NEW
+  PLANNED
+  IN_PROGRESS
+  DONE
+  REJECTED
+}
+
+model User {
+  id             Int       @id @default(autoincrement())
+  email          String    @unique
+  passwordHash   String
+  firstName      String?
+  lastName       String?
+  birthdate      DateTime?
+  gender         String?
+  country        String?
+  role           String    @default("user")
+  preferredColor String?   @db.Char(7)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt
+
+  diaryEntries WorkDiaryEntry[]
+  groceries    GroceryItem[]
+  todoItems    TodoItem[]
+
+  labels WorkDiaryLabel[]
+
+  babies       Baby[]
+  toolSettings UserToolSettings?
+
+  @@map("users")
+}
+
+model Suggestion {
+  id          Int              @id @default(autoincrement())
+  userId      Int? // ja iesniedz ielogots
+  name        String? // publisks, ja nav anonīms
+  email       String? // iekšējai saziņai
+  isAnonymous Boolean          @default(false)
+  hidePublic  Boolean          @default(false) // “Nevēlos rādīt publiski”
+  content     String
+  status      SuggestionStatus @default(NEW)
+  pinned      Boolean          @default(false)
+  archived    Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([status, archived])
+}
+
+model WorkDiaryEntry {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  type      DiaryType
+  label     String?
+  typeColor String?   @db.Char(7)
+  title     String?
+  notes     String?
+  location  String?
+
+  startAt DateTime  @db.Timestamptz(6)
+  endAt   DateTime? @db.Timestamptz(6)
+  allDay  Boolean   @default(false)
+
+  status     DiaryStatus @default(planned)
+  priority   Int?
+  recurrence String?
+  reminders  Json        @default("[]")
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([userId, startAt], name: "idx_diary_user_start")
+  @@index([userId, status], name: "idx_diary_user_status")
+  @@index([userId, allDay], name: "idx_diary_user_allday")
+  @@map("work_diary_entries")
+}
+
+model WorkDiaryLabel {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  name     String
+  colorHex String  @db.Char(7)
+  archived Boolean @default(false)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@unique([userId, name], name: "uniq_diarylabel_user_name")
+  @@map("work_diary_labels")
+}
+
+model GroceryItem {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  text      String
+  completed Boolean @default(false)
+
+  list GroceryListKind @default(daily)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  @@index([userId, list, completed, createdAt])
+  @@index([userId, completed])
+  @@map("grocery_items")
+}
+
+model TodoItem {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  title    String
+  note     String?
+  done     Boolean      @default(false)
+  priority TodoPriority @default(med)
+  due      DateTime?
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  @@index([userId, done, priority])
+  @@map("todo_items")
+}
+
+model DayLog {
+  id       Int      @id @default(autoincrement())
+  date     DateTime @db.Date
+  dayColor String?  @db.VarChar(7)
+  userId   Int?
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  @@unique([userId, date], name: "daylog_user_date_unique")
+}
+
+model RecurringEvent {
+  id         Int        @id @default(autoincrement())
+  userId     Int?
+  title      String
+  baseDate   DateTime   @db.Date
+  recurrence Recurrence
+  notes      String?
+
+  // Optional “skips” and “overrides”.
+  // Postgres supports array-of-date and JSON nicely:
+  skips     DateTime[] @db.Date
+  overrides Json?
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+}
+
+model Baby {
+  id     String    @id @default(cuid())
+  name   String
+  birth  DateTime?
+  userId Int
+  user   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs   BabyLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model BabyLog {
+  id String @id @default(cuid())
+
+  // userId paliek kā STRING, bez relācijas
+  userId String
+
+  // baby relācija ok (Baby.id ir String)
+  babyId String?
+  baby   Baby?   @relation(fields: [babyId], references: [id], onDelete: SetNull)
+
+  occurredAt DateTime
+  foodType   String
+  amount     Int
+  unit       String
+  weightKg   Float?
+  notes      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([babyId])
+}
+
+model UserToolSettings {
+  id     Int  @id @default(autoincrement())
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  calendar Boolean @default(true)
+  diary    Boolean @default(true)
+  tasks    Boolean @default(true)
+  workouts Boolean @default(true)
+  shopping Boolean @default(true)
+  weather  Boolean @default(true)
+  baby     Boolean @default(true)
+  stats    Boolean @default(false)
+  projects Boolean @default(false)
+
+  @@index([userId])
+}

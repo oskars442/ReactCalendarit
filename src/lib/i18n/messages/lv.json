@@ -616,7 +616,121 @@
 
     "weekdays": { "mon": "Pr", "tue": "Ot", "wed": "Tr", "thu": "Ce", "fri": "Pk", "sat": "Se", "sun": "Sv" },
 
-    "editWorkout": "Rediģēt treniņu",
-    "tpl": { "easy5k": "5K viegla skriešana", "push45": "Push diena 45m", "yoga30": "Joga 30m" }
+    "editWorkout": "Rediģēt treniņu"
+},
+ "babyTracker": {
+  "selectBabyPlaceholder": "Izvēlies zīdaini…",
+    "appTitle": "Mazuļu ēdienreižu uzskaite",
+    "selectBabyLabel": "Zīdainis",
+    "selectBabyPl": "Izvēlies zīdaini…",
+    "addBabyBtn": "+ Bērns",
+    "newEntryBtn": "+ Jauns ieraksts",
+
+    "statFeedsToday": "Barošanas reizes šodien",
+    "statFeedsHint": "reizes",
+    "statAmountToday": "Šodien apēsts",
+    "statAmountHint": "ml/g",
+    "statLastFeed": "Pēdējais ēšanas laiks",
+    "noDash": "—",
+
+    "timelineToday": "Šodienas laika josla",
+    "noEntriesToday": "Šodien nav ierakstu",
+
+    "history": "Vēsture",
+    "emptyHistory": "Nav datu.",
+    "thDateTime": "Datums / laiks",
+    "thFood": "Ēdiens",
+    "thAmount": "Daudzums",
+    "thWeight": "Svars",
+    "thNotes": "Piezīmes",
+    "thActions": "Darbības",
+    "editTitle": "Rediģēt",
+    "deleteTitle": "Dzēst",
+
+    "statistics": "Statistika",
+    "range7d": "7d",
+    "range30d": "30d",
+    "range1y": "1g",
+
+    "chartAmountTitle": "Apēstais daudzums / dienā",
+    "chartAmountSub": "ml / g",
+    "chartWeightTitle": "Svara izmaiņas",
+    "chartWeightSub": "kg",
+
+    "modalAddEntry": "Jauns ieraksts",
+    "modalEditEntry": "Rediģēt ierakstu",
+    "modalEntrySubtitle": "Pievieno/rediģē barošanas informāciju un (opc.) svaru",
+    "modalAddBaby": "Pievienot zīdaini",
+
+    "formDateTime": "Datums / laiks",
+    "formFoodType": "Ēdiena veids",
+    "formAmount": "Daudzums",
+    "formWeightKgOpt": "Bērna svars (opc.)",
+    "formNotes": "Piezīmes",
+    "notesPlaceholder": "piem.: ēda ātri, atgrieza u.tml.",
+    "cancel": "Atcelt",
+    "clear": "Notīrīt",
+    "save": "Saglabāt",
+    "updateEntry": "Atjaunināt ierakstu",
+    "saving": "Saglabāju…",
+    "confirmDelete": "Vai tiešām dzēst šo ierakstu?",
+
+    "foodMix": "Maisījums",
+    "foodBreastMilk": "Mātes piens",
+    "foodPorridge": "Putriņa",
+    "foodVeggies": "Dārzeņi",
+    "foodFruits": "Augļi",
+    "foodWater": "Ūdens",
+    "foodOther": "Cits…",
+
+    "babyName": "Vārds",
+    "babyBirth": "Dzimšanas datums",
+    "placeholderBabyName": "piem., Laura",
+    "saveBaby": "Saglabāt"
+  },
+     "profile": {
+    "title": "Mans profils",
+    "tools": {
+      "title": "Rīku iestatījumi",
+      "hint": "Atzīmē, kuras sadaļas rādīt sānjoslā.",
+      "items": {
+        "calendar": "Kalendārs",
+        "diary": "Darba dienasgrāmata",
+        "tasks": "Uzdevumi",
+        "workouts": "Treniņi",
+        "shopping": "Iepirkumi",
+        "weather": "Laikapstākļi",
+        "baby": "Mazuļa izsekošana",
+        "stats": "Statistika (Premium)",
+        "projects": "Projekti"
+      }
+    },
+    "actions": {
+      "save": "Saglabāt",
+      "changePassword": "Mainīt paroli"
+    },
+    "password": {
+      "title": "Paroles maiņa",
+      "hint": "Drošībai parolei jābūt vismaz 8 rakstzīmēm.",
+      "current": "Pašreizējā parole",
+      "new": "Jaunā parole",
+      "confirm": "Apstiprini jauno paroli"
+    },
+    "delete": {
+      "title": "Dzēst kontu",
+      "warning": "Šī darbība ir neatgriezeniska. Tiks dzēsti visi ar profilu saistītie dati.",
+      "confirmLabel": "Ievadi DELETE, lai apstiprinātu:",
+      "action": "Dzēst kontu"
+    },
+    "errors": {
+      "passwordMin": "Parolei jābūt vismaz 8 rakstzīmēm.",
+      "passwordMismatch": "Jaunā parole un apstiprinājums nesakrīt.",
+      "passwordWrong": "Pašreizējā parole nav pareiza.",
+      "confirmError": "Lūdzu ieraksti \"DELETE\", lai apstiprinātu dzēšanu."
+    },
+    "createdAtPrefix": "Konts izveidots:"
   }
+
+  
+  
 }
