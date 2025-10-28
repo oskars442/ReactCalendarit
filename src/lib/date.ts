@@ -1,4 +1,5 @@
 // src/lib/date.ts
+
 export function pad2(n: number) {
   return n < 10 ? `0${n}` : `${n}`;
 }
@@ -39,6 +40,25 @@ export function addDays(d: Date, days: number) {
   return r;
 }
 
-export function monthLabel(d: Date, locale = "en") {
-  return d.toLocaleString(locale, { month: "long", year: "numeric" });
+/* =====================================================
+   Month label formatter – "2025. g. Oktobris" (LV)
+   ===================================================== */
+function capitalizeFirst(str: string) {
+  return str ? str.charAt(0).toUpperCase() + str.slice(1) : str;
+}
+
+export function monthLabel(d: Date, locale = "lv-LV") {
+  const loc = (locale || "lv-LV").toLowerCase();
+
+  if (loc.startsWith("lv")) {
+    // LV format: "2025. g. Oktobris"
+    const month = capitalizeFirst(
+      d.toLocaleDateString("lv-LV", { month: "long" })
+    );
+    return `${d.getFullYear()}. g. ${month}`;
+  }
+
+  // Other locales: e.g., "October 2025" or "2025 October"
+  const label = d.toLocaleDateString(locale, { month: "long", year: "numeric" });
+  return capitalizeFirst(label);
 }

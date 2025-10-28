@@ -3,11 +3,15 @@
 
 import * as React from "react";
 
-// ✅ Dati
-import holidays2025 from "@/features/data/holidays-2025.json";
-import { WORK_STATS_2025 } from "@/features/data/work-stats-2025";
+// ✅ Centralizētie dati (by year)
+import { getHolidaysForYear } from "@/features/data/holidays";
+import { getWorkStats } from "@/features/data/work-stats";
 
-// ====== Tipi ======
+function capitalizeFirst(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+/* ====================== Tipi ====================== */
 type DayItem = { id: string; title: string };
 
 type Day = {
@@ -25,29 +29,17 @@ type Holiday = {
   date: string; // "YYYY-MM-DD"
   title: string;
   type: HolidayType;
-  shortHours?: number; // piem., 7
+  shortHours?: number;
   description?: string;
 };
 
-// ====== Svētku meklētājs ======
-const HOLIDAY_MAP = new Map<string, Holiday>(
-  (holidays2025 as Holiday[]).map((h) => [h.date, h])
-);
-function getHoliday(iso: string): Holiday | undefined {
-  return HOLIDAY_MAP.get(iso);
-}
-
-// ====== UI palīgi ======
+/* ====================== UI palīgi ====================== */
 function todoBorderClass(p?: "low" | "med" | "high") {
   switch (p) {
-    case "high":
-      return "border-rose-500";
-    case "med":
-      return "border-amber-500";
-    case "low":
-      return "border-emerald-500";
-    default:
-      return "border-emerald-500";
+    case "high": return "border-rose-500";
+    case "med":  return "border-amber-500";
+    case "low":  return "border-emerald-500";
+    default:     return "border-emerald-500";
   }
 }
 
@@ -75,14 +67,10 @@ function IconCircle({
 function holidayTintClass(h?: Holiday, inMonth?: boolean) {
   if (!h || !inMonth) return "";
   switch (h.type) {
-    case "holiday":
-      return "bg-red-100 dark:bg-red-900/30";
-    case "preHoliday":
-      return "bg-amber-100 dark:bg-amber-900/20";
-    case "movedDay":
-      return "bg-sky-100 dark:bg-sky-900/20";
-    default:
-      return "";
+    case "holiday":    return "bg-red-100 dark:bg-red-900/30";
+    case "preHoliday": return "bg-amber-100 dark:bg-amber-900/20";
+    case "movedDay":   return "bg-sky-100 dark:bg-sky-900/20";
+    default:           return "";
   }
 }
 
@@ -94,17 +82,10 @@ function dayNumberClass(isToday: boolean) {
 // Īsa etiķete stūrī (BRĪVS / 7h / PĀRCELTA)
 function holidayBadge(h: Holiday) {
   switch (h.type) {
-    case "holiday":
-      return { text: "BRĪVS", klass: "bg-red-600 text-white" };
-    case "preHoliday":
-      return {
-        text: h.shortHours ? `${h.shortHours}h` : "Saīsināta",
-        klass: "bg-amber-500 text-black",
-      };
-    case "movedDay":
-      return { text: "PĀRCELTA", klass: "bg-sky-600 text-white" };
-    default:
-      return null;
+    case "holiday":    return { text: "BRĪVS", klass: "bg-red-600 text-white" };
+    case "preHoliday": return { text: h.shortHours ? `${h.shortHours}h` : "Saīsināta", klass: "bg-amber-500 text-black" };
+    case "movedDay":   return { text: "PĀRCELTA",  klass: "bg-sky-600 text-white" };
+    default:           return null;
   }
 }
 
@@ -117,7 +98,7 @@ function holidayTitle(h: Holiday | undefined) {
   return `${h.title}${extra}`;
 }
 
-// ====== Mēneša info (kopsavilkumam) ======
+/* ====================== Mēneša info ====================== */
 function currentMonthYear(days: { dateISO: string; inMonth: boolean }[]) {
   const firstInMonth = days.find((d) => d.inMonth);
   if (!firstInMonth) return null;
@@ -125,14 +106,31 @@ function currentMonthYear(days: { dateISO: string; inMonth: boolean }[]) {
   return { month: dt.getMonth() + 1, year: dt.getFullYear() };
 }
 
-function monthLabel(days: { dateISO: string; inMonth: boolean }[], locale = "lv-LV") {
-  const info = currentMonthYear(days);
-  if (!info) return "";
-  const dt = new Date(days.find((d) => d.inMonth)!.dateISO);
-  return dt.toLocaleDateString(locale, { month: "long", year: "numeric" });
+function monthLabel(
+  days: { dateISO: string; inMonth: boolean }[],
+  locale = "lv-LV"
+) {
+  // ja nav datu – nekas
+  const inMonth = days.find((d) => d.inMonth);
+  if (!inMonth) return "";
+
+  const dt = new Date(inMonth.dateISO);
+
+  // LV: veidojam precīzu formātu “YYYY. g. Mēnesis”
+  if (locale.toLowerCase().startsWith("lv")) {
+    const month = capitalizeFirst(
+      dt.toLocaleDateString("lv-LV", { month: "long" })
+    );
+    const year = dt.getFullYear().toString();
+    return `${year}. g. ${month}`;
+  }
+
+  // citām valodām: ļaujam locale noteikt secību, tikai kapitalizējam pirmo burtu
+  const label = dt.toLocaleDateString(locale, { month: "long", year: "numeric" });
+  return capitalizeFirst(label);
 }
 
-// ===================== Galvenais komponents =====================
+/* ====================== Galvenais komponents ====================== */
 export default function CalendarMonth({
   days,
   weekdayLabels,
@@ -146,10 +144,27 @@ export default function CalendarMonth({
 }) {
   const todayISO = new Date().toISOString().slice(0, 10);
 
-  // Oficiālais kopsavilkums (no PDF datiem)
-  const info = React.useMemo(() => currentMonthYear(days), [days]);
+  // Kurā mēnesī/gadā skatāmies
+  const info  = React.useMemo(() => currentMonthYear(days), [days]);
   const label = React.useMemo(() => monthLabel(days), [days]);
-  const official = info && info.year === 2025 ? WORK_STATS_2025[info.month] : undefined;
+
+  // 🔹 Dinamiski ielādējam svētkus pēc gada
+  const holidayMap = React.useMemo(() => {
+    const year = info?.year ?? new Date().getFullYear();
+    const list = getHolidaysForYear(year) as Holiday[];
+    return new Map<string, Holiday>(list.map(h => [h.date, h]));
+  }, [info?.year]);
+
+  const getHoliday = React.useCallback(
+    (iso: string) => holidayMap.get(iso),
+    [holidayMap]
+  );
+
+  // 🔹 Oficiālais kopsavilkums pēc gada/mēneša
+  const official = React.useMemo(
+    () => (info ? getWorkStats(info.year, info.month) : undefined),
+    [info]
+  );
 
   return (
     <div className="w-full">
@@ -181,7 +196,6 @@ export default function CalendarMonth({
           const isWeekendCol = col === 5 || col === 6;
           const isToday = dateISO === todayISO;
 
-          // Svētku statuss
           const holiday = getHoliday(dateISO);
 
           const base = [
@@ -196,12 +210,12 @@ export default function CalendarMonth({
             "focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400",
           ].join(" ");
 
-          // Robežas (separāti no fona)
+          // Robežas (atsevišķi no fona)
           const borderTint = inMonth
             ? "border-gray-200 dark:border-gray-800"
             : "border-gray-200/60 dark:border-gray-800/60 opacity-80";
 
-          // ✅ Fons — tikai viena `bg-*` klase
+          // ✅ Fons — izvēlamies tikai vienu bg-klasi
           let bgClass = "";
           if (holiday && inMonth) {
             bgClass = holidayTintClass(holiday, true);
@@ -281,7 +295,7 @@ export default function CalendarMonth({
         })}
       </div>
 
-      {/* ---------- Oficiālais kopsavilkums no PDF ---------- */}
+      {/* ---------- Oficiālais kopsavilkums ---------- */}
       <div className="mt-3 md:mt-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/40 px-3 py-2 text-sm flex items-center justify-between">
         <div className="opacity-80">
           📊 <span className="capitalize">{label}</span>
@@ -289,18 +303,15 @@ export default function CalendarMonth({
 
         {official ? (
           <div className="font-medium">
-            Oficiāli noteiktās: {official.days} darba dienas · {official.hours} Darba stundas
+            Oficiāli noteiktās: {official.days} darba dienas · {official.hours} h
           </div>
         ) : (
           <div className="font-medium">(Nav oficiālu datu šim gadam)</div>
         )}
       </div>
-      {/* Ja gribi paskaidrojumu rindu, atkomentē: */}
-      {/*
-      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+      {/* <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
         Balstīts uz 5 d./40 h nedēļu. Pirmssvētku dienās – 7 h; pārceltās darba dienas iekļautas.
-      </p>
-      */}
+      </p> */}
     </div>
   );
 }

@@ -11,7 +11,7 @@ import DayDialog from "@/components/day/DayDialog";
 import type { ISODate } from "@/lib/types";
 import lvNamedays from "@/features/overview/namedays/lv_namedays.json";
 import { kindIcon } from "@/lib/eventIcons";
-import holidays2025 from "@/features/data/holidays-2025.json";
+import { getHolidaysForYear } from "@/features/data/holidays";
 
 type UiKind = keyof typeof kindIcon;
 type UiPriority = "low" | "med" | "high";
@@ -243,21 +243,25 @@ const addDays = (d: Date, n: number) => {
   x.setHours(0, 0, 0, 0);
   return x;
 };
-type HolidayJson = { date: string; title: string; type: "holiday"|"preHoliday"|"movedDay"; shortHours?: number; description?: string };
+type Holiday = { date: string; title: string; type: "holiday"|"preHoliday"|"movedDay" };
 
-function holidaysInRange(fromISO: string, toISO: string): ApiItem[] {
-  // Šeit strādājam tikai ar 2025. gadu; ja vajag – paplašini pēc gada
-  const list = (holidays2025 as HolidayJson[])
+function holidaysInRange(fromISO: string, toISO: string) {
+  const y1 = new Date(fromISO).getFullYear();
+  const y2 = new Date(toISO).getFullYear();
+
+  const years = y1 === y2 ? [y1] : [y1, y2];
+
+  const all = years.flatMap(y => getHolidaysForYear(y) as Holiday[]);
+  return all
     .filter(h => h.date >= fromISO && h.date <= toISO)
-    .map((h) => ({
+    .map(h => ({
       id: `holiday-${h.date}`,
       title: h.title,
-      kind: "recurring-yearly" as UiKind, // tavs Row jau rāda 🎉 šim kind
+      kind: "recurring-yearly" as const,
       dateISO: h.date,
-      // Nav konkrēta laika/prioritātes
     }));
-  return list;
 }
+
 
 /* --------------------------- Main client component ------------------------- */
 export default function ClientOverview() {
@@ -280,7 +284,19 @@ export default function ClientOverview() {
 
   // 🔹 Šodienas dayColor (sinhronizēts ar DayLog/kalendāru)
   const [todayColor, setTodayColor] = useState<string | null>(null);
-
+const loadOverview = async (from: string, to: string, setAll: (x: ApiItem[]) => void, setLoading: (b: boolean) => void) => {
+  setLoading(true);
+  try {
+    const res = await fetch(`/api/overview?from=${from}&to=${to}`, { cache: "no-store" });
+    const json = res.ok ? await res.json().catch(() => ({ items: [] })) : { items: [] };
+    const holidayItems = holidaysInRange(from, to);
+    const merged = new Map<string, ApiItem>();
+    for (const it of [ ...(json.items as ApiItem[]), ...holidayItems ]) merged.set(it.id, it);
+    setAll([...merged.values()]);
+  } finally {
+    setLoading(false);
+  }
+};
   // Ielasa šodienas dayLog vienu reizi
   useEffect(() => {
     (async () => {
@@ -312,28 +328,26 @@ export default function ClientOverview() {
 
 useEffect(() => {
   const from = toISO(todayDate);
-  const to = toISO(addDays(todayDate, 30));
-
-  (async () => {
-    try {
-      const res = await fetch(`/api/overview?from=${from}&to=${to}`, { cache: "no-store" });
-      const json = res.ok ? await res.json().catch(() => ({ items: [] })) : { items: [] };
-
-      // ➕ Pievienojam svētkus periodā
-      const holidayItems = holidaysInRange(from, to);
-
-      // 🔀 Apvienojam: API + svētki (un izvairāmies no dublikātiem pēc id)
-      const mergedById = new Map<string, ApiItem>();
-      for (const it of [...(json.items as ApiItem[]), ...holidayItems]) {
-        mergedById.set(it.id, it);
-      }
-      setAll(Array.from(mergedById.values()));
-    } finally {
-      setLoading(false);
-    }
-  })();
-// eslint-disable-next-line react-hooks/exhaustive-deps
+  const to   = toISO(addDays(todayDate, 30));
+  loadOverview(from, to, setAll, setLoading);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
 }, []);
+// Re-load pēc izmaiņu eventiem (recurring/todos/work/groceries)
+useEffect(() => {
+  const from = toISO(todayDate);
+  const to   = toISO(addDays(todayDate, 30));
+
+  const rerun = () => loadOverview(from, to, setAll, setLoading);
+  const evts = [
+    "calendarit:recurringChanged",
+    "calendarit:todosChanged",
+    "calendarit:workDiaryChanged",
+    "calendarit:groceriesChanged",
+  ] as const;
+
+  evts.forEach(e => window.addEventListener(e, rerun as EventListener));
+  return () => evts.forEach(e => window.removeEventListener(e, rerun as EventListener));
+}, [todayDate]);
 
   // ---------------- Rolling windows (exclusive) ----------------
   const next7ISO  = useMemo(() => toISO(addDays(todayDate, 7)), [todayDate]);

@@ -26,6 +26,7 @@ import { authOptions } from "@/lib/auth";
 
 // Noderīgs tips “YYYY-MM-DD” virknei
 import type { ISODate } from "@/lib/types";
+import MonthQuickPick from '@/components/MonthQuickPick';
 
 // Minimāla eventa forma kalendāra vajadzībām (ID + virsraksts + starts)
 type EventLike = {
@@ -181,13 +182,13 @@ const todoPriority = todoPriorityByDate.get(dateISO); // ⬅️ var būt undefin
     // -mx-4 kompensē DashboardShell iekšējo paddingu, lai kalendārs iziet līdz ekrāna malām
     <div className="-mx-4 sm:mx-0 grid gap-2 md:gap-4">
       {/* Mēneša virsraksts + pārslēgšanas pogas */}
-      <div className="mb-1 md:mb-2 flex items-center justify-center gap-2 md:gap-3">
-        <MonthSwitcher direction="prev" />
-        <h2 className="text-2xl md:text-4xl font-extrabold tracking-tight">
-          {label}
-        </h2>
-        <MonthSwitcher direction="next" />
-      </div>
+     <div className="mb-1 md:mb-2 flex items-center justify-center gap-2 md:gap-3">
+  <MonthSwitcher direction="prev" />
+  <h2 className="text-2xl md:text-4xl font-extrabold tracking-tight">
+    <MonthQuickPick date={monthDate} locale={locale ?? 'lv-LV'} />
+  </h2>
+  <MonthSwitcher direction="next" />
+</div>
 
       {/* “Karte” ap kalendāru: uz mobilā bez paddings/radius/ring, uz ≥md — kā iepriekš */}
       <div className="bg-white p-0 md:p-4 rounded-none md:rounded-lg shadow-none md:shadow-sm ring-0 md:ring-1 ring-black/5 dark:bg-gray-900 dark:ring-white/10">

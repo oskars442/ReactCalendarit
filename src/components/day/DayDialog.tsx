@@ -12,24 +12,23 @@ import WorkDiaryModal from "@/components/WorkDiaryModal";
 import { addForDate as addGrocery } from "@/services/groceries";
 import { create as addTodo } from "@/services/todos";
 import { createRecurringYearly } from "@/services/recurring";
-import holidays2025 from "@/features/data/holidays-2025.json";
 
+import { getHolidaysForYear } from "@/features/data/holidays";
 
 type HolidayType = "holiday" | "preHoliday" | "movedDay";
 type Holiday = {
-  date: string;            // "YYYY-MM-DD"
+  date: string;
   title: string;
   type: HolidayType;
-  shortHours?: number;     // piemēram 7
+  shortHours?: number;
   description?: string;
 };
 
-const HOLIDAY_MAP = new Map<string, Holiday>(
-  (holidays2025 as Holiday[]).map(h => [h.date, h])
-);
-
+/** Iedod svētkus konkrētam ISO datumam (ņemot vērā gadu) */
 function getHoliday(iso: string): Holiday | undefined {
-  return HOLIDAY_MAP.get(iso);
+  const year = Number(iso.slice(0, 4));
+  const list = getHolidaysForYear(year) as Holiday[];
+  return list.find(h => h.date === iso);
 }
 
 function holidayBadge(h: Holiday) {
@@ -262,17 +261,19 @@ export default function DayDialog({
     }
   }, [open, date, baseLog]);
 
-  const dateHeader = useMemo(() => {
-    if (!date) return "";
-    const d = new Date(`${date}T00:00:00Z`);
-    const weekday = d.toLocaleDateString(locale, { weekday: "long" });
-    const rest = d.toLocaleDateString(locale, {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-    return `${weekday}, ${rest}`;
-  }, [date, locale]);
+const dateHeader = useMemo(() => {
+  if (!date) return "";
+  const fmtWeek = new Intl.DateTimeFormat(locale, { weekday: "long", timeZone: "Europe/Riga" });
+  const fmtRest = new Intl.DateTimeFormat(locale, {
+    year: "numeric", month: "long", day: "numeric", timeZone: "Europe/Riga"
+  });
+
+  // Izveido “virtuālu” datumu tikai formatēšanai ar TZ
+  const parts = date.split("-").map(Number); // [YYYY, MM, DD]
+  const d = new Date(parts[0], parts[1]-1, parts[2], 12, 0, 0); // pusdienlaiks, lai izvairītos no robežstundām
+
+  return `${fmtWeek.format(d)}, ${fmtRest.format(d)}`;
+}, [date, locale]);
 
   // Enable "Save" only if color actually changed
   const canSave = useMemo(() => {
