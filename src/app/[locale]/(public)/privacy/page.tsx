@@ -20,8 +20,8 @@ type PrivacyContent = {
 const PRIVACY_BY_LOCALE: Record<Locale, PrivacyContent> = {
   lv: {
     title: "🔒 Privātuma politika (Privacy Policy)",
-    effective: "Stājas spēkā: [ievadi datumu]",
-    lastUpdated: "Pēdējais atjauninājums: [ievadi datumu]",
+    effective: "Stājas spēkā: 28.10.2025",
+    lastUpdated: "Pēdējais atjauninājums: 28.10.2025",
     owner: "Pakalpojuma īpašnieks: Privātpersona (Liepāja, Latvija)",
     contact: "Kontaktinformācija: calendarit2025@gmail.com",
     law: "Tiesiskais regulējums: ES Vispārīgā datu aizsardzības regula (GDPR) un Latvijas Republikas likumi",
@@ -136,8 +136,8 @@ const PRIVACY_BY_LOCALE: Record<Locale, PrivacyContent> = {
   },
   en: {
     title: "🔒 Privacy Policy",
-    effective: "Effective date: [insert date]",
-    lastUpdated: "Last updated: [insert date]",
+    effective: "Effective date: 28.10.2025",
+    lastUpdated: "Last updated: 28.10.2025",
     owner: "Service owner: Private individual (Liepāja, Latvia)",
     contact: "Contact: calendarit2025@gmail.com",
     law: "Governing law: EU GDPR and laws of the Republic of Latvia",
@@ -250,8 +250,8 @@ const PRIVACY_BY_LOCALE: Record<Locale, PrivacyContent> = {
   },
   ru: {
     title: "🔒 Политика конфиденциальности",
-    effective: "Вступает в силу: [укажите дату]",
-    lastUpdated: "Последнее обновление: [укажите дату]",
+    effective: "Вступает в силу: 28.10.2025",
+    lastUpdated: "Последнее обновление: 28.10.2025",
     owner: "Владелец сервиса: Частное лицо (Лиепая, Латвия)",
     contact: "Контакты: calendarit2025@gmail.com",
     law: "Применимое право: GDPR ЕС и законы Латвийской Республики",
